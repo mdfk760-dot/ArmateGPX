@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>笑笑_GPX檔案轉換器</title>
+  <style>
+    :root{
+      --bg:#fff4f8;--panel:#fffafd;--panel2:#ffe8f0;--line:#f3bfd0;--text:#4a2f3a;--muted:#8c6674;
+      --pink:#dc477d;--pink2:#f0759f;--green:#55b997;--blue:#3d86dc;--purple:#6c59dc;--dark:#222528;
+      --node:#6659de;--start:#55d46b;--end:#ef594d;--route:#ffd84d;
+    }
+    *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.45}
+    .wrap{max-width:1260px;margin:0 auto;padding:24px 14px 34px}.title{text-align:center;margin:4px 0 22px}.title h1{font-size:40px;color:#d64178;margin:0;font-weight:900;letter-spacing:.5px}.title p{margin:8px 0 0;color:var(--muted);font-weight:700}
+    .grid{display:grid;grid-template-columns:1fr 1.05fr;gap:14px}.card{background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:14px;box-shadow:0 8px 22px rgba(217,80,125,.08)}
+    .card h2{font-size:18px;color:var(--pink);margin:0 0 12px;font-weight:900}.subgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.full{grid-column:1/-1}.controls{display:grid;grid-template-columns:1fr 1fr;gap:12px}.smallcard{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:12px}
+    label{display:block;font-size:13px;font-weight:900;color:var(--pink);margin-bottom:8px}textarea,select,input{width:100%;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--text);padding:10px 12px;font:inherit}textarea{height:260px;resize:vertical;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:15px}.output{overflow:auto;word-break:break-all;overflow:auto;word-break:break-all;height:295px;white-space:pre;overflow:auto;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:12px}
+    .hint{font-size:12px;color:var(--muted);margin-top:8px;font-weight:700}.btns{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:16px}button{border:0;border-radius:12px;color:#fff;padding:14px 16px;font:inherit;font-weight:900;cursor:pointer;box-shadow:0 4px 10px rgba(0,0,0,.07)}button:hover{filter:brightness(.96)}.green{background:var(--green)}.blue{background:var(--blue)}.purple{background:var(--purple)}.pink{background:var(--pink)}.light{background:#fff;color:var(--pink);border:1px solid var(--line)}
+    .toggleline{display:flex;align-items:center;gap:9px;flex-wrap:wrap}.switch{position:relative;width:58px;height:30px;display:inline-block}.switch input{display:none}.slider{position:absolute;inset:0;background:#d7d7d7;border-radius:999px;cursor:pointer}.slider:before{content:"";position:absolute;width:24px;height:24px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s;box-shadow:0 1px 4px rgba(0,0,0,.25)}.switch input:checked+.slider{background:#59c74e}.switch input:checked+.slider:before{transform:translateX(28px)}
+    .tabs{display:flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-bottom:0}.tab{flex:1;padding:11px 8px;text-align:center;background:#ffe8f0;color:#666;font-weight:800;cursor:pointer}.tab.active{background:var(--pink);color:#fff}.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px}.stat{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:12px}.stat b{display:block;color:var(--pink);font-size:13px}.stat span{display:block;margin-top:6px;font-weight:800;color:#47313a;font-size:13px}
+    .stat input{margin-top:6px;padding:8px 10px;font-size:13px;font-weight:800}
+
+    .vizHead{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:10px}.canvasWrap{background:var(--dark);border-radius:8px;border:1px solid #111;padding:0;overflow:hidden}.canvasWrap canvas{display:block;width:100%;height:auto;min-height:540px}.side{display:grid;grid-template-columns:370px 1fr;gap:14px}.footer{text-align:center;color:var(--muted);font-weight:800;margin-top:20px}.msg{margin-top:10px;color:#9d4262;font-weight:800;white-space:pre-wrap}.miniList{height:382px;overflow:auto;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;white-space:pre;font-size:14px}.dragHint{font-size:12px;color:#c65c80;margin-top:8px;font-weight:800}
+    
+    .dragList{height:382px;overflow:auto;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:14px}
+    .dragItem{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--line);border-radius:9px;padding:8px 10px;margin-bottom:8px;cursor:grab;user-select:none}
+    .dragItem:active{cursor:grabbing}
+    .dragItem.dragging{opacity:.45}
+    .dragNum{min-width:34px;color:var(--pink);font-weight:900}
+    .dragCoord{white-space:nowrap;color:var(--text)}
+
+
+    .outputGrid{display:grid;grid-template-columns:3fr 3fr 2fr;gap:12px;align-items:stretch}
+    .outputBox h3{font-size:14px;color:var(--pink);margin:0 0 8px;font-weight:900}
+
+    .outputCopyBtn{width:100%;padding:10px 12px;margin:0 0 8px;border-radius:10px}
+
+    @media(max-width:980px){.outputGrid{grid-template-columns:1fr}}
+
+    @media(max-width:980px){.grid,.side,.subgrid,.controls{grid-template-columns:1fr}.title h1{font-size:28px}.btns{grid-template-columns:1fr}.canvasWrap canvas{min-height:420px}}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="title"><h1>🌼 笑笑_GPX檔案轉換器</h1><p>輸入經緯度座標，轉換為 WPT 版 GPX，並用象限圖判斷方向與路徑順序</p></div>
+
+  <div class="grid">
+    <section class="card">
+      <h2>🌼 1. 輸入內容（支援多種座標 / GPX / XML 格式）</h2>
+      <textarea id="input" placeholder="可貼入：&#10;37.177885,33.230895&#10;&lt;wpt lat=&quot;37.177885&quot; lon=&quot;33.230895&quot;&gt;&lt;name&gt;P1&lt;/name&gt;&lt;/wpt&gt;&#10;&lt;trkpt lon=&quot;33.230895&quot; lat=&quot;37.177885&quot;/&gt;&#10;地點名稱, 37.177885, 33.230895&#10;或完整 GPX / XML 內容"></textarea>
+      <div class="hint">支援純座標、wpt / trkpt / rtept、完整 GPX / XML、名稱 + 座標混合內容；會自動提取 lat / lon 並輸出 WPT 版 GPX。
+<div class="btns analyze-group" style="margin-top:12px">
+  <button class="green" id="analyzeBtn">分析排序</button>
+  <button class="blue" id="copyFruitBtn">複製收果版</button>
+  <button class="blue" id="copyFlowerBtn">複製種花版</button>
+</div>
+</div>
+      
+      
+      
+      <div id="msg" class="msg"></div>
+    </section>
+
+    <section class="card">
+      <div class="controls">
+        <div class="smallcard"><label>2. 自動最佳路徑</label><div class="toggleline"><span>關閉：依貼上順序</span><label class="switch"><input id="autoRoute" type="checkbox"><span class="slider"></span></label><span>開啟：最短路徑</span></div></div>
+        <div class="smallcard"><label>3. 座標顯示模式</label><select id="vizMode"><option value="quadrant">雙層象限版</option><option value="grid">網格版</option></select></div>
+        <div class="smallcard full"><label>4. 種花第二圈模式</label><div class="toggleline"><span>關閉：外圈15點 + 外圈15點</span><label class="switch"><input id="flowerInnerMode" type="checkbox"><span class="slider"></span></label><span>開啟：外圈15點 + 內圈9點</span></div><div class="hint">座標命名維持目前 F1、F2、F3…連續編號；此開關只改變種花版第二圈的偏移方式。</div></div>
+      </div>
+      <div class="hint">雙層象限圖不是實際地圖，只用座標比例與方向輔助判斷：上方為北、右方為東。
+<div class="smallcard" style="margin-top:12px">
+  <label for="fileNameInput">下載檔名</label>
+  <input id="fileNameInput" placeholder="請輸入檔案名稱，例如：我的路線" />
+  <div class="hint">會依據輸入資料自動補上座標尾碼，例如：<code>我的路線 (-25.88,-49.44).gpx</code></div>
+
+<div class="btns"><button class="purple" id="downloadBtn">下載檔案</button></div>
+</div>
+</div>
+    </section>
+  </div>
+
+  <div class="side" style="margin-top:14px">
+    <div>
+      <section class="card">
+        <h2>🌼 6. 排序結果</h2>
+        <div id="pointList" class="dragList"></div>
+        <div class="dragHint">提示：可直接拖曳下方編號調整順序，放開後會立即更新 GPX、統計與路徑圖。</div>
+      </section>
+      <section class="card" style="margin-top:14px">
+        <h2>🌼 7. 路徑統計資訊</h2>
+        <div class="stats">
+          <div class="stat"><b>點位總數</b><span id="sCount">0 個</span></div><div class="stat"><b>總距離</b><span id="sDist">0 公里</span></div>
+          <div class="stat"><b>起點</b><span id="sStart">-</span></div><div class="stat"><b>終點</b><span id="sEnd">-</span></div>
+          <div class="stat"><b>速度 km/hr</b><input id="speedInput" type="number" min="1" step="0.1" value="18" /></div><div class="stat"><b>預計完成時間</b><span id="sTime">-</span></div>
+        </div>
+      </section>
+    </div>
+
+    <section class="card">
+      <div class="vizHead"><h2>🌼 8. 路徑視覺化（雙層象限 & 網格版）</h2><div class="toggleline"><span>顯示編號</span><label class="switch"><input id="showLabels" type="checkbox" checked><span class="slider"></span></label><button id="pngBtn" class="light">🖼 匯出圖片</button></div></div>
+      <div class="canvasWrap"><canvas id="canvas" width="900" height="720"></canvas></div>
+    </section>
+  </div>
+
+    <section class="card" style="margin-top:14px">
+    <h2>🌼 9. 轉換輸出</h2>
+    <div class="outputGrid">
+      <div class="outputBox">
+        <button class="pink outputCopyBtn" id="copyFruitForwardBtn" type="button">收果版（正向）</button>
+        <div class="output" id="fruitForwardOutput"></div>
+      </div>
+      <div class="outputBox">
+        <button class="pink outputCopyBtn" id="copyFlowerForwardBtn" type="button">種花版（正向）</button>
+        <div class="output" id="flowerForwardOutput"></div>
+      </div>
+      <div class="outputBox">
+        <button class="pink outputCopyBtn" id="copyCoordForwardBtn" type="button">純座標（正向）</button>
+        <div class="output" id="coordForwardOutput"></div>
+      </div>
+      <div class="outputBox">
+        <button class="pink outputCopyBtn" id="copyFruitReverseBtn" type="button">收果版（反向）</button>
+        <div class="output" id="fruitReverseOutput"></div>
+      </div>
+      <div class="outputBox">
+        <button class="pink outputCopyBtn" id="copyFlowerReverseBtn" type="button">種花版（反向）</button>
+        <div class="output" id="flowerReverseOutput"></div>
+      </div>
+      <div class="outputBox">
+        <button class="pink outputCopyBtn" id="copyCoordReverseBtn" type="button">純座標（反向）</button>
+        <div class="output" id="coordReverseOutput"></div>
+      </div>
+    </div>
+  </section>
+  <div class="footer">🌼 笑笑_GPX檔案轉換器・讓路徑更清楚，方向更好判斷！</div>
+</div>
+
+
+<script>
+const $ = id => document.getElementById(id);
+let currentPoints = [];
+
+function escapeXml(s){
+  return String(s)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g,'&apos;');
+}
+
+function makePoint(lat, lon, i){
+  return { lat: Number(lat), lon: Number(lon), orig: i + 1 };
+}
+
+function stripXmlTags(text){
+  return String(text).replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+function parsePoints(text){
+  const pts = [];
+  let m;
+
+  // 1. XML / GPX 標籤：支援 wpt / trkpt / rtept，lat/lon 順序可顛倒
+  const tag = /<(?:wpt|trkpt|rtept)\b[^>]*>/gi;
+  while ((m = tag.exec(text)) !== null) {
+    const s = m[0];
+    const lat = s.match(/\blat=["']([^"']+)["']/i);
+    const lon = s.match(/\blon=["']([^"']+)["']/i);
+    if (lat && lon) {
+      const a = Number(lat[1]);
+      const b = Number(lon[1]);
+      if (Number.isFinite(a) && Number.isFinite(b) && Math.abs(a) <= 90 && Math.abs(b) <= 180) {
+        pts.push(makePoint(a, b, pts.length));
+      }
+    }
+  }
+  if (pts.length) return pts;
+
+  // 2. 逐行解析：純座標 / 名稱+座標
+  const lines = text.split(/\r?\n/).map(x => x.trim()).filter(Boolean);
+  for (const line of lines) {
+    const clean = stripXmlTags(line);
+    const cm = clean.match(/(-?\d+(?:\.\d+)?)\s*[,，]\s*(-?\d+(?:\.\d+)?)/);
+    if (cm) {
+      const a = Number(cm[1]);
+      const b = Number(cm[2]);
+      if (Number.isFinite(a) && Number.isFinite(b) && Math.abs(a) <= 90 && Math.abs(b) <= 180) {
+        pts.push(makePoint(a, b, pts.length));
+      }
+    }
+  }
+  if (pts.length) return pts;
+
+  // 3. 全文備援掃描
+  const re = /(-?\d+(?:\.\d+)?)\s*[,，]\s*(-?\d+(?:\.\d+)?)/g;
+  while ((m = re.exec(text)) !== null) {
+    const a = Number(m[1]);
+    const b = Number(m[2]);
+    if (Number.isFinite(a) && Number.isFinite(b) && Math.abs(a) <= 90 && Math.abs(b) <= 180) {
+      pts.push(makePoint(a, b, pts.length));
+    }
+  }
+  return pts;
+}
+
+function rad(v){ return v * Math.PI / 180; }
+
+function dist(a, b){
+  const R = 6371;
+  const dLat = rad(b.lat - a.lat);
+  const dLon = rad(b.lon - a.lon);
+  const la1 = rad(a.lat);
+  const la2 = rad(b.lat);
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(la1) * Math.cos(la2) * Math.sin(dLon / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(h));
+}
+
+function total(pts){
+  let s = 0;
+  for (let i = 0; i < pts.length - 1; i++) s += dist(pts[i], pts[i + 1]);
+  return s;
+}
+
+function nearestSort(pts){
+  if (pts.length < 3) return pts.slice();
+  const rem = pts.slice();
+  const route = [rem.shift()];
+  while (rem.length) {
+    let bi = 0;
+    let bd = Infinity;
+    const last = route[route.length - 1];
+    rem.forEach((p, i) => {
+      const d = dist(last, p);
+      if (d < bd) { bd = d; bi = i; }
+    });
+    route.push(rem.splice(bi, 1)[0]);
+  }
+  return route;
+}
+
+function angleSort(pts){
+  if (pts.length < 3) return pts.slice();
+  const c = {
+    lat: pts.reduce((s,p)=>s+p.lat,0) / pts.length,
+    lon: pts.reduce((s,p)=>s+p.lon,0) / pts.length
+  };
+  return pts.slice().sort((a,b) =>
+    Math.atan2(a.lat - c.lat, a.lon - c.lon) -
+    Math.atan2(b.lat - c.lat, b.lon - c.lon)
+  );
+}
+
+function twoOpt(path){
+  let best = path.slice();
+  let changed = true;
+  while (changed) {
+    changed = false;
+    for (let i = 1; i < best.length - 2; i++) {
+      for (let k = i + 1; k < best.length - 1; k++) {
+        const a = best[i - 1], b = best[i], c = best[k], d = best[k + 1];
+        if (dist(a,b) + dist(c,d) > dist(a,c) + dist(b,d) + 1e-9) {
+          best.splice(i, k - i + 1, ...best.slice(i, k + 1).reverse());
+          changed = true;
+        }
+      }
+    }
+  }
+  return best;
+}
+
+function orderPoints(pts){
+  let out = pts.slice();
+
+  if ($('autoRoute') && $('autoRoute').checked) {
+    out = nearestSort(out);
+    out = twoOpt(out);
+  }
+
+  return out.map((p, i) => ({...p, num: i + 1}));
+}
+
+function bounds(pts){
+  return {
+    minLat: Math.min(...pts.map(p=>p.lat)),
+    maxLat: Math.max(...pts.map(p=>p.lat)),
+    minLon: Math.min(...pts.map(p=>p.lon)),
+    maxLon: Math.max(...pts.map(p=>p.lon))
+  };
+}
+
+function fmtCoord(p){
+  return `${p.lat.toFixed(6)}, ${p.lon.toFixed(6)}`;
+}
+
+function buildFruitGPX(pts){
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="ItsXiaoXiao1028">
+${pts.map((p,i)=>`  <wpt lat="${escapeXml(p.lat.toFixed(6))}" lon="${escapeXml(p.lon.toFixed(6))}"><name>P${i+1}</name></wpt>`).join('\n')}
+</gpx>`;
+}
+
+
+// 種花跳點邏輯：第一圈固定為外圈 15 點；第二圈可用開關切換。
+// 開啟 flowerInnerMode：第二圈為內圈 9 點；關閉：第二圈再次使用外圈 15 點。
+// 產生順序會先跑完所有點的第一圈，再跑完所有點的第二圈。
+const FLOWER_OUTER_OFFSETS = [
+  [ 0.000270,  0.000000],
+  [ 0.000202,  0.000117],
+  [ 0.000135,  0.000234],
+  [ 0.000000,  0.000234],
+  [-0.000135,  0.000234],
+  [-0.000203,  0.000117],
+  [-0.000270,  0.000000],
+  [-0.000203, -0.000117],
+  [-0.000135, -0.000234],
+  [ 0.000000, -0.000234],
+  [ 0.000135, -0.000234],
+  [ 0.000202, -0.000117],
+  [ 0.000135,  0.000000],
+  [ 0.000000,  0.000000],
+  [-0.000135,  0.000000],
+];
+
+const FLOWER_INNER_OFFSETS = [
+  [ 0.000135,  0.000000],
+  [ 0.000135,  0.000135],
+  [ 0.000000,  0.000135],
+  [-0.000135,  0.000135],
+  [-0.000135,  0.000000],
+  [-0.000135, -0.000135],
+  [ 0.000000, -0.000135],
+  [ 0.000135, -0.000135],
+  [ 0.000135,  0.000000],
+];
+
+function offsetPoint(p, offset){
+  return {
+    lat: p.lat + offset[0],
+    lon: p.lon + offset[1],
+    orig: p.orig,
+    num: p.num
+  };
+}
+
+function useFlowerInnerMode(){
+  return Boolean($('flowerInnerMode') && $('flowerInnerMode').checked);
+}
+
+function getFlowerSecondOffsets(){
+  return useFlowerInnerMode() ? FLOWER_INNER_OFFSETS : FLOWER_OUTER_OFFSETS;
+}
+
+function generateFlowerPoints(pts){
+  const firstRing = [];
+  const secondRing = [];
+  const secondOffsets = getFlowerSecondOffsets();
+
+  pts.forEach(p => {
+    FLOWER_OUTER_OFFSETS.forEach(offset => firstRing.push(offsetPoint(p, offset)));
+  });
+
+  pts.forEach(p => {
+    secondOffsets.forEach(offset => secondRing.push(offsetPoint(p, offset)));
+  });
+
+  return firstRing.concat(secondRing);
+}
+
+function buildFlowerGPX(pts){
+  const flowerPts = generateFlowerPoints(pts);
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="ItsXiaoXiao1028">
+${flowerPts.map((p,i)=>`  <wpt lat="${escapeXml(p.lat.toFixed(6))}" lon="${escapeXml(p.lon.toFixed(6))}"><name>F${i+1}</name></wpt>`).join('\n')}
+</gpx>`;
+}
+
+function reversed(pts){
+  return pts.slice().reverse();
+}
+
+function buildCoords(pts){
+  return pts.map(p => `${p.lat.toFixed(6)},${p.lon.toFixed(6)}`).join('\n');
+}
+
+function buildReverseCoords(pts){
+  return pts.slice().reverse().map(p => `${p.lat.toFixed(6)},${p.lon.toFixed(6)}`).join('\n');
+}
+
+function updateOutput(){
+  if ($('fruitForwardOutput')) $('fruitForwardOutput').textContent = buildFruitGPX(currentPoints);
+  if ($('fruitReverseOutput')) $('fruitReverseOutput').textContent = buildFruitGPX(reversed(currentPoints));
+  if ($('flowerForwardOutput')) $('flowerForwardOutput').textContent = buildFlowerGPX(currentPoints);
+  if ($('flowerReverseOutput')) $('flowerReverseOutput').textContent = buildFlowerGPX(reversed(currentPoints));
+  if ($('coordForwardOutput')) $('coordForwardOutput').textContent = buildCoords(currentPoints);
+  if ($('coordReverseOutput')) $('coordReverseOutput').textContent = buildCoords(reversed(currentPoints));
+}
+
+function draw(){
+  const canvas = $('canvas');
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width, h = canvas.height;
+
+  ctx.clearRect(0,0,w,h);
+  ctx.fillStyle = '#222528';
+  ctx.fillRect(0,0,w,h);
+
+  if (!currentPoints.length) {
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 26px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('請先輸入座標並按「分析排序」', w/2, h/2);
+    return;
+  }
+
+  const b = bounds(currentPoints);
+  const pad = 70;
+  const lonR = b.maxLon - b.minLon || 0.0001;
+  const latR = b.maxLat - b.minLat || 0.0001;
+  const scale = Math.min((w - pad * 2) / lonR, (h - pad * 2) / latR);
+  const usedW = lonR * scale;
+  const usedH = latR * scale;
+  const ox = (w - usedW) / 2;
+  const oy = (h - usedH) / 2;
+
+  const xy = p => ({
+    x: ox + (p.lon - b.minLon) * scale,
+    y: oy + (b.maxLat - p.lat) * scale
+  });
+
+  if ($('vizMode').value === 'grid') {
+    ctx.strokeStyle = 'rgba(255,255,255,.09)';
+    ctx.lineWidth = 1;
+    for (let x = pad; x < w - pad; x += 45) {
+      ctx.beginPath(); ctx.moveTo(x,pad); ctx.lineTo(x,h-pad); ctx.stroke();
+    }
+    for (let y = pad; y < h - pad; y += 45) {
+      ctx.beginPath(); ctx.moveTo(pad,y); ctx.lineTo(w-pad,y); ctx.stroke();
+    }
+  }
+
+  const cx = w / 2, cy = h / 2;
+  ctx.setLineDash([9,8]);
+  ctx.strokeStyle = 'rgba(255,255,255,.75)';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(cx, pad/2); ctx.lineTo(cx, h-pad/2);
+  ctx.moveTo(pad/2, cy); ctx.lineTo(w-pad/2, cy);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 16px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('緯度（北）↑', cx, 30);
+  ctx.fillText('緯度（南）↓', cx, h - 25);
+  ctx.textAlign = 'left';
+  ctx.fillText('經度（西）←', 24, cy - 8);
+  ctx.textAlign = 'right';
+  ctx.fillText('經度（東）→', w - 24, cy - 8);
+
+  ctx.setLineDash([8,8]);
+  ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--route').trim() || '#ffd84d';
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+  currentPoints.forEach((p,i)=>{
+    const q = xy(p);
+    if (i === 0) ctx.moveTo(q.x, q.y);
+    else ctx.lineTo(q.x, q.y);
+  });
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  currentPoints.forEach((p,i)=>{
+    const q = xy(p);
+    ctx.beginPath();
+    ctx.arc(q.x, q.y, 12, 0, Math.PI * 2);
+    ctx.fillStyle = i === 0 ? '#55d46b' : i === currentPoints.length - 1 ? '#ef594d' : '#6659de';
+    ctx.fill();
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = 'rgba(0,0,0,.22)';
+    ctx.stroke();
+
+    if ($('showLabels').checked) {
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 19px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.strokeStyle = 'rgba(0,0,0,.55)';
+      ctx.lineWidth = 4;
+      ctx.strokeText(String(i+1), q.x, q.y - 18);
+      ctx.fillText(String(i+1), q.x, q.y - 18);
+    }
+  });
+}
+
+function renderDragList(){
+  const list = $('pointList');
+  list.innerHTML = '';
+  currentPoints.forEach((p, i) => {
+    const item = document.createElement('div');
+    item.className = 'dragItem';
+    item.draggable = true;
+    item.dataset.index = i;
+    item.innerHTML = `<span class="dragNum">${String(i + 1).padStart(2, '0')}</span><span class="dragCoord">${p.lat.toFixed(6)}, ${p.lon.toFixed(6)}</span>`;
+
+    item.addEventListener('dragstart', () => item.classList.add('dragging'));
+    item.addEventListener('dragend', () => {
+      item.classList.remove('dragging');
+      applyDragOrder();
+    });
+
+    list.appendChild(item);
+  });
+}
+
+function getDragAfterElement(container, y){
+  const draggableElements = [...container.querySelectorAll('.dragItem:not(.dragging)')];
+  return draggableElements.reduce((closest, child) => {
+    const box = child.getBoundingClientRect();
+    const offset = y - box.top - box.height / 2;
+    if (offset < 0 && offset > closest.offset) return { offset, element: child };
+    return closest;
+  }, { offset: Number.NEGATIVE_INFINITY }).element;
+}
+
+function applyDragOrder(){
+  const items = [...$('pointList').querySelectorAll('.dragItem')];
+  const next = items.map(item => currentPoints[Number(item.dataset.index)]);
+  currentPoints = next.map((p, i) => ({...p, num: i + 1}));
+  updateAfterManualOrder();
+}
+
+function updateAfterManualOrder(){
+  renderDragList();
+  updateStats();
+  updateOutput();
+  draw();
+}
+
+
+function formatDurationBySpeed(distanceKm){
+  const speed = Number($('speedInput')?.value || 18);
+  if (!Number.isFinite(speed) || speed <= 0 || distanceKm <= 0) return '-';
+
+  const totalMinutes = Math.round((distanceKm / speed) * 60);
+  const h = Math.floor(totalMinutes / 60);
+  const m = totalMinutes % 60;
+
+  if (h <= 0) return `約 ${m} 分鐘`;
+  if (m === 0) return `約 ${h} 小時`;
+  return `約 ${h} 小時 ${m} 分鐘`;
+}
+
+function updateStats(){
+  if (!currentPoints.length) {
+    $('sCount').textContent = '0 個';
+    $('sDist').textContent = '0 公里';
+    $('sStart').textContent = '-';
+    $('sEnd').textContent = '-';
+    if ($('sTime')) $('sTime').textContent = '-';
+    return;
+  }
+
+  const distanceKm = total(currentPoints);
+  $('sCount').textContent = currentPoints.length + ' 個';
+  $('sDist').textContent = '約 ' + distanceKm.toFixed(2) + ' 公里';
+  $('sStart').textContent = '#1 ' + fmtCoord(currentPoints[0]);
+  $('sEnd').textContent = '#' + currentPoints.length + ' ' + fmtCoord(currentPoints[currentPoints.length - 1]);
+  if ($('sTime')) $('sTime').textContent = formatDurationBySpeed(distanceKm);
+}
+
+function initDragList(){
+  const list = $('pointList');
+  list.addEventListener('dragover', e => {
+    e.preventDefault();
+    const afterElement = getDragAfterElement(list, e.clientY);
+    const dragging = document.querySelector('.dragging');
+    if (!dragging) return;
+    if (afterElement == null) list.appendChild(dragging);
+    else list.insertBefore(dragging, afterElement);
+  });
+}
+
+function analyze(){
+  const raw = $('input').value.trim();
+  const pts = parsePoints(raw);
+
+  if (!pts.length) {
+    $('msg').textContent = '沒有找到可用座標。';
+    currentPoints = [];
+    $('pointList').innerHTML = '';
+    ['fruitForwardOutput','fruitReverseOutput','flowerForwardOutput','flowerReverseOutput','coordForwardOutput','coordReverseOutput'].forEach(id => { if ($(id)) $(id).textContent = ''; });
+    updateStats();
+    draw();
+    return;
+  }
+
+  currentPoints = orderPoints(pts);
+  renderDragList();
+  updateStats();
+  const flowerModeText = useFlowerInnerMode() ? '外圈15點 + 內圈9點' : '外圈15點 + 外圈15點';
+  $('msg').textContent = '完成，共 ' + currentPoints.length + ' 個原始點位；種花版模式：' + flowerModeText + '，會展開為 ' + generateFlowerPoints(currentPoints).length + ' 個跳點。';
+  updateOutput();
+  draw();
+}
+
+$('analyzeBtn').onclick = analyze;
+
+$('copyFruitBtn').onclick = async () => {
+  if (!currentPoints.length) analyze();
+  const text = buildFruitGPX(currentPoints);
+  if (!text) return;
+  await navigator.clipboard.writeText(text);
+  $('msg').textContent = '已複製收果版。';
+};
+
+$('copyFlowerBtn').onclick = async () => {
+  if (!currentPoints.length) analyze();
+  const text = buildFlowerGPX(currentPoints);
+  if (!text) return;
+  await navigator.clipboard.writeText(text);
+  $('msg').textContent = '已複製種花版。';
+};
+
+function floor2(n){
+  return Math.floor(n * 100) / 100;
+}
+
+function generateFileName(){
+  const base = ($('fileNameInput')?.value || '我的路線').trim() || '我的路線';
+  if (!currentPoints.length) return `${base}.gpx`;
+  const p = currentPoints[0];
+  return `${base} (${floor2(p.lat).toFixed(2)},${floor2(p.lon).toFixed(2)}).gpx`;
+}
+
+$('downloadBtn').onclick = () => {
+  if (!currentPoints.length) analyze();
+  if (!currentPoints.length) return;
+  const blob = new Blob([buildFruitGPX(currentPoints)], {type:'application/gpx+xml;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = generateFileName();
+  a.click();
+  URL.revokeObjectURL(a.href);
+};
+
+$('pngBtn').onclick = () => {
+  const a = document.createElement('a');
+  a.href = $('canvas').toDataURL('image/png');
+  a.download = 'GPX_route_preview.png';
+  a.click();
+};
+
+['autoRoute','vizMode','showLabels','speedInput','flowerInnerMode'].forEach(id => {
+  if ($(id)) {
+    const eventName = id === 'speedInput' ? 'input' : 'change';
+    $(id).addEventListener(eventName, () => {
+      if (id === 'speedInput' && currentPoints.length) updateStats();
+      else if (id === 'flowerInnerMode' && currentPoints.length) {
+        updateOutput();
+        const flowerModeText = useFlowerInnerMode() ? '外圈15點 + 內圈9點' : '外圈15點 + 外圈15點';
+        $('msg').textContent = '已切換種花版模式：' + flowerModeText + '；目前會展開為 ' + generateFlowerPoints(currentPoints).length + ' 個跳點。';
+      }
+      else if (currentPoints.length || $('input').value.trim()) analyze();
+      else draw();
+    });
+  }
+});
+
+
+
+async function copyOut(text, msg){
+  if (!currentPoints.length) analyze();
+  if (!text) return;
+  await navigator.clipboard.writeText(text);
+  $('msg').textContent = msg;
+}
+
+if ($('copyFruitForwardBtn')) $('copyFruitForwardBtn').onclick = () => copyOut(buildFruitGPX(currentPoints), '已複製收果版GPX格式（正向）。');
+if ($('copyFruitReverseBtn')) $('copyFruitReverseBtn').onclick = () => copyOut(buildFruitGPX(reversed(currentPoints)), '已複製收果版GPX格式（反向）。');
+if ($('copyFlowerForwardBtn')) $('copyFlowerForwardBtn').onclick = () => copyOut(buildFlowerGPX(currentPoints), '已複製種花版GPX格式（正向）。');
+if ($('copyFlowerReverseBtn')) $('copyFlowerReverseBtn').onclick = () => copyOut(buildFlowerGPX(reversed(currentPoints)), '已複製種花版GPX格式（反向）。');
+if ($('copyCoordForwardBtn')) $('copyCoordForwardBtn').onclick = () => copyOut(buildCoords(currentPoints), '已複製純座標格式（正向）。');
+if ($('copyCoordReverseBtn')) $('copyCoordReverseBtn').onclick = () => copyOut(buildCoords(reversed(currentPoints)), '已複製純座標格式（反向）。');
+
+initDragList();
+draw();
+</script>
+
+
+</body>
+</html>
