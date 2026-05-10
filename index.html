@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>妖妖_GPX檔案轉換器</title>
+  <title>笑笑_GPX檔案轉換器</title>
   <style>
     :root{
       --bg:#fff4f8;--panel:#fffafd;--panel2:#ffe8f0;--line:#f3bfd0;--text:#4a2f3a;--muted:#8c6674;
@@ -42,7 +42,7 @@
 </head>
 <body>
 <div class="wrap">
-  <div class="title"><h1>🌼 妖妖_GPX檔案轉換器</h1><p>輸入經緯度座標，轉換為 WPT 版 GPX，並用象限圖判斷方向與路徑順序</p></div>
+  <div class="title"><h1>🌼 笑笑_GPX檔案轉換器</h1><p>輸入經緯度座標，轉換為 WPT 版 GPX，並用象限圖判斷方向與路徑順序</p></div>
 
   <div class="grid">
     <section class="card">
@@ -131,7 +131,7 @@
       </div>
     </div>
   </section>
-  <div class="footer">🌼 妖妖_GPX檔案轉換器・讓路徑更清楚，方向更好判斷！</div>
+  <div class="footer">🌼 笑笑_GPX檔案轉換器・讓路徑更清楚，方向更好判斷！</div>
 </div>
 
 
@@ -292,10 +292,27 @@ function fmtCoord(p){
   return `${p.lat.toFixed(6)}, ${p.lon.toFixed(6)}`;
 }
 
+// 收果跳點邏輯：每個原始點產生 3 個橫向小偏移點。
+// 產生順序：lng-0.000045 → 原始中心 → lng+0.000045。
+const FRUIT_OFFSETS = [
+  [0.000000, -0.000045],
+  [0.000000,  0.000000],
+  [0.000000,  0.000045],
+];
+
+function generateFruitPoints(pts){
+  const out = [];
+  pts.forEach(p => {
+    FRUIT_OFFSETS.forEach(offset => out.push(offsetPoint(p, offset)));
+  });
+  return out;
+}
+
 function buildFruitGPX(pts){
+  const fruitPts = generateFruitPoints(pts);
   return `<?xml version="1.0" encoding="UTF-8"?>
 <gpx version="1.1" creator="ItsXiaoXiao1028">
-${pts.map((p,i)=>`  <wpt lat="${escapeXml(p.lat.toFixed(6))}" lon="${escapeXml(p.lon.toFixed(6))}"><name>P${i+1}</name></wpt>`).join('\n')}
+${fruitPts.map((p,i)=>`  <wpt lat="${escapeXml(p.lat.toFixed(6))}" lon="${escapeXml(p.lon.toFixed(6))}"><name>P${i+1}</name></wpt>`).join('\n')}
 </gpx>`;
 }
 
@@ -598,7 +615,7 @@ function analyze(){
   renderDragList();
   updateStats();
   const flowerModeText = useFlowerInnerMode() ? '外圈15點 + 內圈9點' : '外圈15點 + 外圈15點';
-  $('msg').textContent = '完成，共 ' + currentPoints.length + ' 個原始點位；種花版模式：' + flowerModeText + '，會展開為 ' + generateFlowerPoints(currentPoints).length + ' 個跳點。';
+  $('msg').textContent = '完成，共 ' + currentPoints.length + ' 個原始點位；收果版會展開為 ' + generateFruitPoints(currentPoints).length + ' 個跳點；種花版模式：' + flowerModeText + '，會展開為 ' + generateFlowerPoints(currentPoints).length + ' 個跳點。';
   updateOutput();
   draw();
 }
