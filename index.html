@@ -77,21 +77,26 @@
 </head>
 <body>
 <div class="wrap">
-  <div class="title"><h1>🌼 妖妖_GPX路徑生成器</h1><p>輸入經緯度座標，轉換為 Brook 版 GPX，並提供種花與收果版本路徑</p></div>
+  <div class="title"><h1>🌼 妖妖_GPX路徑生成器</h1><p>輸入經緯度座標，轉換為 Brook 版種花與收果版本路徑GPX</p></div>
 
   <div class="grid">
     <section class="card">
-      <h2>🌼 1. 參數設定</h2>
-      <div class="controls">
-        <div class="smallcard full"><label>路徑排序</label><div class="toggleline"><span>依貼上順序</span><label class="switch"><input id="autoRoute" type="checkbox"><span class="slider"></span></label><span>最短路徑</span></div></div>
-        <div class="smallcard full"><label>種花模式</label><div class="toggleline"><span>跳點（15點+15點）</span><label class="switch"><input id="flowerInnerMode" type="checkbox"><span class="slider"></span></label><span>跳點（15點+9點）</span></div><div class="hint">此開關只改變種花版第二圈的偏移方式。</div></div>
+      <div class="sectionTitleRow clickableHeader" id="paramHeader">
+        <h2>🌼 1. 參數設定</h2>
+        <button class="collapseBtn" id="toggleParamBtn" type="button" title="收縮 / 展開" aria-label="收縮參數設定">▲</button>
       </div>
-      <div>
+      <div id="paramContent">
+        <div class="controls">
+          <div class="smallcard full"><label>路徑排序</label><div class="toggleline"><span>依貼上順序</span><label class="switch"><input id="autoRoute" type="checkbox"><span class="slider"></span></label><span>最短路徑</span></div></div>
+          <div class="smallcard full"><label>種花模式</label><div class="toggleline"><span>跳點（15點+15點）</span><label class="switch"><input id="flowerInnerMode" type="checkbox"><span class="slider"></span></label><span>跳點（15點+9點）</span></div><div class="hint">此開關只改變種花版第二圈的偏移方式。</div></div>
+        </div>
+        <div>
 <div class="smallcard" style="margin-top:12px">
   <label for="fileNameInput">花田名稱</label>
   <input id="fileNameInput" placeholder="請輸入花田名稱，例如：大田A區" />
 </div>
 </div>
+      </div>
     </section>
 
     <section class="card">
@@ -683,7 +688,8 @@ function updateAfterManualOrder(){
 
 function formatCountBasedMinutes(pointCount){
   if (!Number.isFinite(pointCount) || pointCount <= 0) return '-';
-  const totalSeconds = Math.round(pointCount * 3);
+  // 每個跳點原本估 3 秒，實際執行會有約 1 秒延遲，因此改為每點 4 秒。
+  const totalSeconds = Math.round(pointCount * 4);
   const minutes = Math.floor(totalSeconds / 60);
   const seconds = totalSeconds % 60;
   return `${minutes} 分 ${seconds} 秒`;
@@ -734,7 +740,7 @@ function analyze(){
   currentPoints = orderPoints(pts);
   renderDragList();
   updateStats();
-  const flowerModeText = useFlowerInnerMode() ? '外圈15點 + 內圈9點' : '外圈15點 + 外圈15點';
+  const flowerModeText = useFlowerInnerMode() ? '跳點（15點+9點）' : '跳點（15點+15點）';
   $('msg').textContent = '完成，共 ' + currentPoints.length + ' 個原始點位；收果版會展開為 ' + generateFruitPoints(currentPoints).length + ' 個跳點；種花版模式：' + flowerModeText + '，會展開為 ' + generateFlowerPoints(currentPoints).length + ' 個跳點。';
   updateOutput();
   draw();
@@ -956,6 +962,7 @@ function bindCollapseToggle(headerId, buttonId, contentId, sectionName){
   syncState();
 }
 
+bindCollapseToggle('paramHeader', 'toggleParamBtn', 'paramContent', '參數設定');
 bindCollapseToggle('copyHeader', 'toggleCopyBtn', 'copyContent', '座標複製區');
 bindCollapseToggle('downloadHeader', 'toggleDownloadBtn', 'downloadContent', '座標下載區');
 bindCollapseToggle('outputHeader', 'toggleOutputBtn', 'outputContent', '轉換輸出');
