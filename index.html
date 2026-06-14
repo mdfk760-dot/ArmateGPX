@@ -436,7 +436,7 @@ function generateFruitPoints(pts){
 function buildFruitGPX(pts){
   const fruitPts = generateFruitPoints(pts);
   return `<?xml version="1.0" encoding="UTF-8"?>
-<gpx version="1.1" creator="ItsXiaoXiao1028">
+<gpx version="1.1" creator="XiaoXiao">
 ${fruitPts.map((p,i)=>`  <wpt lat="${escapeXml(p.lat.toFixed(6))}" lon="${escapeXml(p.lon.toFixed(6))}"><name>P${i+1}</name></wpt>`).join('\n')}
 </gpx>`;
 }
@@ -511,14 +511,14 @@ function generateFlowerPoints(pts){
 function buildFlowerGPX(pts){
   const flowerPts = generateFlowerPoints(pts);
   return `<?xml version="1.0" encoding="UTF-8"?>
-<gpx version="1.1" creator="ItsXiaoXiao1028">
+<gpx version="1.1" creator="XiaoXiao">
 ${flowerPts.map((p,i)=>`  <wpt lat="${escapeXml(p.lat.toFixed(6))}" lon="${escapeXml(p.lon.toFixed(6))}"><name>F${i+1}</name></wpt>`).join('\n')}
 </gpx>`;
 }
 
 function buildCoordGPX(pts){
   return `<?xml version="1.0" encoding="UTF-8"?>
-<gpx version="1.1" creator="ItsXiaoXiao1028">
+<gpx version="1.1" creator="XiaoXiao">
 ${pts.map((p,i)=>`  <wpt lat="${escapeXml(p.lat.toFixed(6))}" lon="${escapeXml(p.lon.toFixed(6))}"><name>C${i+1}</name></wpt>`).join('\n')}
 </gpx>`;
 }
