@@ -842,7 +842,7 @@ function downloadGenerated(type, direction){
 
   const isReverse = direction === 'reverse';
   const pts = isReverse ? reversed(currentPoints) : currentPoints;
-  const dirName = isReverse ? '反向' : '正向';
+  const dirName = isReverse ? '反' : '正';
   const base = sanitizeFileName(getBaseFileName());
   let text = '';
   let label = '';
@@ -850,10 +850,10 @@ function downloadGenerated(type, direction){
   let mime = 'application/gpx+xml;charset=utf-8';
 
   if (type === 'fruit') {
-    label = '收果版';
+    label = '收果';
     text = buildFruitGPX(pts);
   } else if (type === 'flower') {
-    label = '種花版';
+    label = '種花';
     text = buildFlowerGPX(pts);
   } else if (type === 'coordGpx') {
     label = '純座標GPX';
