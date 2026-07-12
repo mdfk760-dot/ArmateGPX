@@ -73,6 +73,278 @@
     @media(max-width:980px){.outputGrid{grid-template-columns:1fr}.copyGrid{grid-template-columns:1fr}}
 
     @media(max-width:980px){.grid,.side,.subgrid,.controls{grid-template-columns:1fr}.title h1{font-size:28px}.btns{grid-template-columns:1fr}.canvasWrap canvas{min-height:420px}}
+  
+    /* ===== 開花公告網站風格覆寫 ===== */
+    :root{--bg:#fff8f2;--panel:rgba(255,255,255,.92);--panel2:#fff5f7;--line:#f0ded3;--text:#3d332d;--muted:#8a7b70;--pink:#ef7d9b;--pink2:#f39ab1;--green:#75ad79;--blue:#4f8edc;--purple:#a99586;--dark:#2f2926;--node:#ef7d9b;--start:#75ad79;--end:#d9534f;--route:#f4c95d}
+    body{min-height:100vh;font-family:"Noto Sans TC","Microsoft JhengHei",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:radial-gradient(circle at top left,rgba(255,214,226,.72),transparent 34%),radial-gradient(circle at bottom right,rgba(204,239,203,.70),transparent 32%),var(--bg);background-attachment:fixed}
+    .wrap{max-width:1260px;padding:28px 14px 44px}.title{padding:4px 10px 10px;margin:0 0 20px}.title h1{color:var(--text);font-size:clamp(28px,5vw,42px);letter-spacing:.04em}.title p{color:var(--muted);font-size:15px;font-weight:700}
+    .card{background:var(--panel);border:1px solid var(--line);border-radius:22px;padding:18px;box-shadow:0 12px 30px rgba(112,79,61,.12);backdrop-filter:blur(10px)}
+    .card h2,label,.outputBox h3,.outputLabel{color:#d95f83}.smallcard,.copyBlock,.stat,.dragList,.miniList,.output{background:rgba(255,248,242,.82);border-color:var(--line);border-radius:16px}
+    textarea,select,input{border:1px solid var(--line);border-radius:14px;background:#fff;color:var(--text);padding:11px 13px;outline:none;transition:border-color .12s ease,box-shadow .12s ease}textarea:focus,select:focus,input:focus{border-color:var(--pink);box-shadow:0 0 0 3px rgba(239,125,155,.14)}
+    button{border-radius:14px;box-shadow:none;transition:transform .12s ease,filter .12s ease,background .12s ease}button:hover{transform:translateY(-1px);filter:brightness(.97)}.pink,.copyBlock button{background:var(--pink)}.green,.copyBlock button.green{background:var(--green)}.blue{background:var(--blue)}.purple{background:var(--purple)}.light{background:#fff;color:var(--muted);border:1px solid var(--line)}.light:hover{background:#fff8f2;color:var(--text)}
+    .slider{background:#d8cec8}.switch input:checked+.slider{background:var(--green)}.dragItem{border-color:var(--line);border-radius:14px;box-shadow:0 3px 10px rgba(112,79,61,.06)}.canvasWrap{border:0;border-radius:18px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.15)}.sectionTitleRow{margin-bottom:14px}.collapseBtn{color:#d95f83}.backToTop{background:var(--pink);border:2px solid rgba(255,255,255,.9);box-shadow:0 10px 24px rgba(112,79,61,.22)}.footer{color:var(--muted);font-size:12px;line-height:1.6;letter-spacing:.02em}.msg{color:#d95f83}
+    .outputViewer{display:grid;gap:12px}.outputToolbar{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center}.outputTypeTabs,.outputDirectionTabs{display:flex;gap:8px;flex-wrap:wrap}.outputTabBtn{min-height:38px!important;padding:9px 13px!important;background:#fff!important;color:var(--muted)!important;border:1px solid var(--line)!important;box-shadow:none!important;font-size:13px!important}.outputTabBtn.active{background:var(--pink)!important;color:#fff!important;border-color:var(--pink)!important}.outputDirectionTabs .outputTabBtn.active{background:var(--green)!important;border-color:var(--green)!important}
+    .outputViewerHead{display:flex;justify-content:space-between;align-items:center;gap:12px}.outputViewerTitle{font-size:14px;font-weight:900;color:#d95f83}.outputViewerHint{font-size:12px;color:var(--muted);font-weight:700}.outputViewerBox{height:360px;background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px;overflow:auto;white-space:pre;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px;line-height:1.55;color:var(--text)}.outputHiddenStore{display:none!important}
+    @media(max-width:980px){.wrap{width:min(100% - 20px,760px);padding:18px 0 34px}.title{padding-left:12px;padding-right:12px}.title h1{font-size:26px}.title p{font-size:13px}.card{border-radius:22px;padding:15px}.btns.analyze-group{grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}.btns.analyze-group button{padding:10px 5px;font-size:12px;white-space:nowrap}.copy-group{grid-template-columns:repeat(2,minmax(0,1fr))}.copyBlock button{font-size:13px}.canvasWrap canvas{min-height:390px}.outputToolbar{grid-template-columns:1fr}.outputTypeTabs,.outputDirectionTabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.outputTabBtn{width:100%}.outputViewerHead{align-items:flex-start;flex-direction:column}.outputViewerBox{height:320px}}
+
+  
+
+    /* ===== 路徑排序按鈕切換 ===== */
+    .routeModeSwitch{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:10px;
+    }
+    .routeModeOption{display:block;margin:0;cursor:pointer}
+    .routeModeOption input{position:absolute;opacity:0;pointer-events:none}
+    .routeModeOption span{
+      min-height:46px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:10px 12px;
+      border:1px solid var(--line);
+      border-radius:14px;
+      background:#fff;
+      color:var(--muted);
+      font-size:14px;
+      font-weight:900;
+      text-align:center;
+      transition:.15s ease;
+    }
+    .routeModeOption:hover span{transform:translateY(-1px);filter:brightness(.98)}
+    .routeModeOption input:checked+span{
+      background:var(--pink);
+      color:#fff;
+      border-color:var(--pink);
+      box-shadow:0 5px 14px rgba(239,125,155,.18);
+    }
+
+    /* ===== 種花模式切換 ===== */
+    .flowerModeSwitch{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:8px;
+      margin-bottom:10px;
+    }
+    .flowerModeOption{
+      position:relative;
+      display:block;
+      margin:0;
+      cursor:pointer;
+    }
+    .flowerModeOption input{
+      position:absolute;
+      opacity:0;
+      pointer-events:none;
+    }
+    .flowerModeOption span{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      min-height:42px;
+      padding:9px 12px;
+      border:1px solid var(--line);
+      border-radius:13px;
+      background:#fff;
+      color:var(--muted);
+      font-size:13px;
+      font-weight:900;
+      text-align:center;
+      transition:.15s ease;
+    }
+    .flowerModeOption input:checked+span{
+      color:#fff;
+      background:var(--pink);
+      border-color:var(--pink);
+      box-shadow:0 5px 14px rgba(239,125,155,.18);
+    }
+    .flowerModeDescription{line-height:1.65}
+    @media(max-width:560px){
+      .flowerModeSwitch{grid-template-columns:1fr}
+    }
+
+  
+    /* ===== 路徑排序／種花模式：膠囊實線切換器 ===== */
+    .routeModeSwitch,
+    .flowerModeSwitch{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:0;
+      padding:4px;
+      border:1px solid #efb9c8;
+      border-radius:999px;
+      background:#fff;
+      box-shadow:0 0 0 3px rgba(239,125,155,.08);
+      overflow:hidden;
+    }
+
+    .routeModeOption,
+    .flowerModeOption{
+      display:block;
+      margin:0;
+      cursor:pointer;
+      min-width:0;
+    }
+
+    .routeModeOption input,
+    .flowerModeOption input{
+      position:absolute;
+      opacity:0;
+      pointer-events:none;
+    }
+
+    .routeModeOption span,
+    .flowerModeOption span{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      min-height:40px;
+      padding:9px 12px;
+      border:0;
+      border-radius:999px;
+      background:transparent;
+      color:var(--muted);
+      font-size:13px;
+      font-weight:900;
+      line-height:1.3;
+      text-align:center;
+      box-shadow:none;
+      transition:background .15s ease,color .15s ease;
+    }
+
+    .routeModeOption:hover span,
+    .flowerModeOption:hover span{
+      background:rgba(239,125,155,.08);
+      filter:none;
+      transform:none;
+    }
+
+    .routeModeOption input:checked + span,
+    .flowerModeOption input:checked + span{
+      background:var(--pink);
+      color:#fff;
+      box-shadow:none;
+      transform:none;
+    }
+
+    .routeModeOption input:focus-visible + span,
+    .flowerModeOption input:focus-visible + span{
+      outline:3px solid rgba(239,125,155,.22);
+      outline-offset:1px;
+    }
+
+    @media(max-width:980px){
+      .routeModeSwitch,
+      .flowerModeSwitch{
+        grid-template-columns:repeat(2,minmax(0,1fr));
+      }
+
+      .routeModeOption span,
+      .flowerModeOption span{
+        min-height:38px;
+        padding:8px 7px;
+        font-size:12px;
+      }
+    }
+
+  
+    /* ===== 分段式切換器：外側圓弧、中間直角 ===== */
+    .routeModeSwitch,
+    .flowerModeSwitch{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:0;
+      padding:0;
+      border:1px solid #efb9c8;
+      border-radius:999px;
+      background:#fff;
+      box-shadow:0 0 0 3px rgba(239,125,155,.08);
+      overflow:hidden;
+    }
+
+    .routeModeOption,
+    .flowerModeOption{
+      display:block;
+      margin:0;
+      min-width:0;
+      cursor:pointer;
+    }
+
+    .routeModeOption input,
+    .flowerModeOption input{
+      position:absolute;
+      opacity:0;
+      pointer-events:none;
+    }
+
+    .routeModeOption span,
+    .flowerModeOption span{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      min-height:42px;
+      padding:9px 12px;
+      border:0;
+      border-radius:0;
+      background:#fff;
+      color:var(--muted);
+      font-size:13px;
+      font-weight:900;
+      line-height:1.3;
+      text-align:center;
+      transition:background .15s ease,color .15s ease;
+    }
+
+    .routeModeOption:first-child span,
+    .flowerModeOption:first-child span{
+      border-radius:999px 0 0 999px;
+    }
+
+    .routeModeOption:last-child span,
+    .flowerModeOption:last-child span{
+      border-radius:0 999px 999px 0;
+    }
+
+    .routeModeOption + .routeModeOption span,
+    .flowerModeOption + .flowerModeOption span{
+      border-left:1px solid #efb9c8;
+    }
+
+    .routeModeOption:hover span,
+    .flowerModeOption:hover span{
+      background:rgba(239,125,155,.08);
+    }
+
+    .routeModeOption input:checked + span,
+    .flowerModeOption input:checked + span{
+      background:var(--pink);
+      color:#fff;
+    }
+
+    .routeModeOption input:checked + span{
+      border-color:var(--pink);
+    }
+
+    .flowerModeOption input:checked + span{
+      border-color:var(--pink);
+    }
+
+    .routeModeOption input:focus-visible + span,
+    .flowerModeOption input:focus-visible + span{
+      outline:3px solid rgba(239,125,155,.22);
+      outline-offset:-3px;
+    }
+
+    @media(max-width:980px){
+      .routeModeOption span,
+      .flowerModeOption span{
+        min-height:40px;
+        padding:8px 7px;
+        font-size:12px;
+      }
+    }
+
   </style>
 </head>
 <body>
@@ -87,8 +359,35 @@
       </div>
       <div id="paramContent">
         <div class="controls">
-          <div class="smallcard full"><label>路徑排序</label><div class="toggleline"><span>依貼上順序</span><label class="switch"><input id="autoRoute" type="checkbox"><span class="slider"></span></label><span>最短迴圈</span></div></div>
-          <div class="smallcard full"><label>種花模式</label><div class="toggleline"><span>每個原始座標產生 15 個種花點：外圈 12 點 → 內側北點 → 中心點 → 內側南點。</span></div><div class="hint">內側路徑會依前後花田的位置自動旋轉，使起點盡量接近前一個花田、終點盡量朝向下一個花田，以縮短花田之間的跳躍距離。</div></div>
+          <div class="smallcard full">
+  <label>路徑排序</label>
+  <div class="routeModeSwitch" role="radiogroup" aria-label="路徑排序方式">
+    <label class="routeModeOption">
+      <input type="radio" name="routeMode" value="paste" checked>
+      <span>依貼上順序</span>
+    </label>
+    <label class="routeModeOption">
+      <input type="radio" name="routeMode" value="shortest">
+      <span>最短迴圈</span>
+    </label>
+  </div>
+</div>
+          <div class="smallcard full">
+  <label>種花模式</label>
+  <div class="flowerModeSwitch" role="radiogroup" aria-label="種花模式類型">
+    <label class="flowerModeOption">
+      <input type="radio" name="flowerMode" value="smart15" checked>
+      <span>15 點自動旋轉</span>
+    </label>
+    <label class="flowerModeOption">
+      <input type="radio" name="flowerMode" value="north33">
+      <span>33 點北向圓形</span>
+    </label>
+  </div>
+  <div class="hint flowerModeDescription" id="flowerModeDescription">
+    每個原始座標產生 15 個種花點：外圈 12 點 → 內側入口點 → 中心點 → 內側出口點。內側路徑會依前後花田位置自動旋轉，以縮短花田之間的跳躍距離；每株約 45 秒。
+  </div>
+</div>
         </div>
         <div>
 <div class="smallcard" style="margin-top:12px">
@@ -100,7 +399,11 @@
     </section>
 
     <section class="card">
-      <h2>🌼 2. 輸入內容</h2>
+      <div class="sectionTitleRow clickableHeader" id="inputHeader">
+        <h2>🌼 2. 輸入內容</h2>
+        <button class="collapseBtn" id="toggleInputBtn" type="button" title="收縮 / 展開" aria-label="收縮輸入內容">▲</button>
+      </div>
+      <div id="inputContent">
       <textarea id="input" placeholder="可貼入：&#10;37.177885,33.230895&#10;&lt;wpt lat=&quot;37.177885&quot; lon=&quot;33.230895&quot;&gt;&lt;name&gt;P1&lt;/name&gt;&lt;/wpt&gt;&#10;&lt;trkpt lon=&quot;33.230895&quot; lat=&quot;37.177885&quot;/&gt;&#10;地點名稱, 37.177885, 33.230895&#10;或完整 GPX / XML 內容"></textarea>
       <div class="hint">支援純座標、wpt / trkpt / rtept、完整 GPX / XML、名稱 + 座標混合內容；會自動提取 lat / lon 並輸出 WPT 版 GPX。
 <div class="btns analyze-group" style="margin-top:12px">
@@ -113,6 +416,8 @@
       
       
       <div id="msg" class="msg"></div>
+
+      </div>
     </section>
   </div>
 
@@ -215,48 +520,37 @@
   </div>
 
     <section class="card" style="margin-top:14px">
-    <div class="sectionTitleRow clickableHeader" id="outputHeader">
-      <h2>🌼 8. 轉換輸出</h2>
-      <button class="collapseBtn" id="toggleOutputBtn" type="button" title="收縮 / 展開" aria-label="展開轉換輸出">▼</button>
-    </div>
-    <div class="outputGrid collapsed" id="outputContent">
-      <div class="outputBox">
-        <div class="outputLabel">收果版（正向）</div>
-        <div class="output" id="fruitForwardOutput"></div>
+  <div class="sectionTitleRow clickableHeader" id="outputHeader">
+    <h2>🌼 8. 轉換輸出</h2>
+    <button class="collapseBtn" id="toggleOutputBtn" type="button" title="收縮 / 展開" aria-label="展開轉換輸出">▼</button>
+  </div>
+  <div class="outputViewer collapsed" id="outputContent">
+    <div class="outputToolbar">
+      <div class="outputTypeTabs" aria-label="輸出格式">
+        <button class="outputTabBtn active" type="button" data-output-type="fruit">收果版</button>
+        <button class="outputTabBtn" type="button" data-output-type="flower">種花版</button>
+        <button class="outputTabBtn" type="button" data-output-type="coordGpx">純座標 GPX</button>
+        <button class="outputTabBtn" type="button" data-output-type="coord">純座標</button>
       </div>
-      <div class="outputBox">
-        <div class="outputLabel">種花版（正向）</div>
-        <div class="output" id="flowerForwardOutput"></div>
-      </div>
-      <div class="outputBox">
-        <div class="outputLabel">純座標GPX（正向）</div>
-        <div class="output" id="coordGpxForwardOutput"></div>
-      </div>
-      <div class="outputBox">
-        <div class="outputLabel">純座標（正向）</div>
-        <div class="output" id="coordForwardOutput"></div>
-      </div>
-      <div class="outputBox">
-        <div class="outputLabel">收果版（反向）</div>
-        <div class="output" id="fruitReverseOutput"></div>
-      </div>
-      <div class="outputBox">
-        <div class="outputLabel">種花版（反向）</div>
-        <div class="output" id="flowerReverseOutput"></div>
-      </div>
-      <div class="outputBox">
-        <div class="outputLabel">純座標GPX（反向）</div>
-        <div class="output" id="coordGpxReverseOutput"></div>
-      </div>
-      <div class="outputBox">
-        <div class="outputLabel">純座標（反向）</div>
-        <div class="output" id="coordReverseOutput"></div>
+      <div class="outputDirectionTabs" aria-label="輸出方向">
+        <button class="outputTabBtn active" type="button" data-output-direction="forward">正向</button>
+        <button class="outputTabBtn" type="button" data-output-direction="reverse">反向</button>
       </div>
     </div>
-  </section>
+    <div class="outputViewerHead">
+      <div class="outputViewerTitle" id="outputViewerTitle">收果版（正向）</div>
+      <div class="outputViewerHint">此區僅供檢查內容；複製與下載請使用上方功能按鈕。</div>
+    </div>
+    <div class="outputViewerBox" id="outputViewerBox"></div>
+    <div class="outputHiddenStore">
+      <div id="fruitForwardOutput"></div><div id="flowerForwardOutput"></div><div id="coordGpxForwardOutput"></div><div id="coordForwardOutput"></div>
+      <div id="fruitReverseOutput"></div><div id="flowerReverseOutput"></div><div id="coordGpxReverseOutput"></div><div id="coordReverseOutput"></div>
+    </div>
+  </div>
+</section>
 
   <button id="backToTopBtn" class="backToTop" type="button" title="回到頂部">回到<br>頂部</button>
-  <div class="footer">🌼 妖妖_GPX路徑生成器 v 2026-07-12 13:10</div>
+  <div class="footer">🌼 妖妖_GPX路徑生成器 v 2026-07-12 分段切換器・輸入可收合版</div>
 </div>
 
 
@@ -430,10 +724,14 @@ function shortestClosedRoute(pts){
   return bestRoute || pts.slice();
 }
 
+function getRouteMode(){
+  return document.querySelector('input[name="routeMode"]:checked')?.value || 'paste';
+}
+
 function orderPoints(pts){
   let out = pts.slice();
 
-  if ($('autoRoute') && $('autoRoute').checked) {
+  if (getRouteMode() === 'shortest') {
     out = shortestClosedRoute(out);
   }
 
@@ -493,17 +791,25 @@ function offsetPoint(p, offset){
   };
 }
 
-// 種花跳點邏輯：每個原始座標固定產生 15 點（45 秒）：
-// 1. 半徑約 30 公尺的外圈 12 點，不重複首點。
-// 2. 外圈完成後依序走北側內點、中心點、南側內點。
-// 3. 依前一個與下一個原始座標方向自動旋轉整組圖形，降低花田間跳躍距離。
-//
-// 沿用原本固定經緯度差值：30 公尺約 0.000270 度，內點約 15 公尺為 0.000135 度；
-// 東西向與南北向使用相同度數偏移，不依所在地緯度套用 cos 修正。
+// 種花模式共用設定：導航 APP 每個點位停留 3 秒。
 const FLOWER_RING_RADIUS_DEGREES = 0.000270;
 const FLOWER_INNER_RADIUS_DEGREES = 0.000135;
 const FLOWER_RING_POINT_COUNT = 12;
-const FLOWER_POINTS_PER_SOURCE = 15;
+const FLOWER_SMART15_POINT_COUNT = 15;
+
+// 33 點北向圓形模式：中心、北約 10 公尺、北約 20 公尺、圓形 30 點。
+const FLOWER_NORTH10_DEGREES = 0.000090;
+const FLOWER_NORTH20_DEGREES = 0.000180;
+const FLOWER_NORTH33_RING_POINT_COUNT = 30;
+const FLOWER_NORTH33_POINT_COUNT = 33;
+
+function getFlowerMode(){
+  return document.querySelector('input[name="flowerMode"]:checked')?.value || 'smart15';
+}
+
+function getFlowerPointsPerSource(){
+  return getFlowerMode() === 'north33' ? FLOWER_NORTH33_POINT_COUNT : FLOWER_SMART15_POINT_COUNT;
+}
 
 function normalizeAngle(angle){
   const full = Math.PI * 2;
@@ -522,8 +828,7 @@ function circularAverage(a, b){
   return normalizeAngle(Math.atan2(y, x));
 }
 
-// 圖形第一點位於 rotationAngle 方向的外圈；最後一點位於其反方向的內圈。
-// 讓第一點盡量朝向前一株，最後一點盡量朝向下一株。
+// 15 點模式：第一個外圈點朝向前一株，最後一個內點盡量朝向下一株。
 function getFlowerRotation(pts, index){
   const n = pts.length;
   if (n <= 1) return 0;
@@ -533,8 +838,6 @@ function getFlowerRotation(pts, index){
   const next = pts[(index + 1) % n];
   const entryTarget = bearingAngle(current, previous);
   const exitTargetAsEntryAxis = normalizeAngle(bearingAngle(current, next) + Math.PI);
-
-  // 起點方向同時兼顧「朝向前一株」與「其反方向朝向下一株」。
   return circularAverage(entryTarget, exitTargetAsEntryAxis);
 }
 
@@ -542,42 +845,73 @@ function rotatedOffset(radius, angle){
   return [radius * Math.cos(angle), radius * Math.sin(angle)];
 }
 
-function generateFlowerPattern(p, rotationAngle = 0){
+function generateSmart15Pattern(p, rotationAngle = 0){
   const pattern = [];
 
-  // 外圈 12 點：由自動判斷的入口方向開始，順時針繞一圈，不重複首點。
+  // 外圈 12 點，不重複第一點。
   for (let i = 0; i < FLOWER_RING_POINT_COUNT; i++) {
     const angle = rotationAngle + 2 * Math.PI * i / FLOWER_RING_POINT_COUNT;
     pattern.push(offsetPoint(p, rotatedOffset(FLOWER_RING_RADIUS_DEGREES, angle)));
   }
 
-  // 由入口側內點穿過中心，再由相反方向離開，作為前往下一株的出口。
+  // 入口側內點 → 中心 → 相反方向出口內點。
   pattern.push(offsetPoint(p, rotatedOffset(FLOWER_INNER_RADIUS_DEGREES, rotationAngle)));
   pattern.push({...p});
   pattern.push(offsetPoint(p, rotatedOffset(FLOWER_INNER_RADIUS_DEGREES, rotationAngle + Math.PI)));
+  return pattern;
+}
 
+function generateNorth33Pattern(p){
+  const pattern = [];
+
+  // 中心 → 北約 10 公尺 → 北約 20 公尺。
+  pattern.push({...p});
+  pattern.push(offsetPoint(p, [FLOWER_NORTH10_DEGREES, 0]));
+  pattern.push(offsetPoint(p, [FLOWER_NORTH20_DEGREES, 0]));
+
+  // 30 點單圈：第 1 點位於正北約 30 公尺，第 30 點與第 1 點重疊。
+  // 因首尾都需保留，所以用 29 個等分區段產生 30 個點。
+  for (let i = 0; i < FLOWER_NORTH33_RING_POINT_COUNT; i++) {
+    const angle = 2 * Math.PI * i / (FLOWER_NORTH33_RING_POINT_COUNT - 1);
+    pattern.push(offsetPoint(p, rotatedOffset(FLOWER_RING_RADIUS_DEGREES, angle)));
+  }
   return pattern;
 }
 
 function generateFlowerPoints(pts){
   const out = [];
+  const mode = getFlowerMode();
+
   pts.forEach((p, index) => {
-    const rotation = getFlowerRotation(pts, index);
-    out.push(...generateFlowerPattern(p, rotation));
+    if (mode === 'north33') {
+      out.push(...generateNorth33Pattern(p));
+    } else {
+      const rotation = getFlowerRotation(pts, index);
+      out.push(...generateSmart15Pattern(p, rotation));
+    }
   });
   return out;
 }
 
 function getFlowerPointName(index){
-  const sourceIndex = Math.floor(index / FLOWER_POINTS_PER_SOURCE) + 1;
-  const positionIndex = index % FLOWER_POINTS_PER_SOURCE;
+  const mode = getFlowerMode();
+  const pointsPerSource = getFlowerPointsPerSource();
+  const sourceIndex = Math.floor(index / pointsPerSource) + 1;
+  const positionIndex = index % pointsPerSource;
+
+  if (mode === 'north33') {
+    if (positionIndex === 0) return `F${sourceIndex}-C`;
+    if (positionIndex === 1) return `F${sourceIndex}-N1`;
+    if (positionIndex === 2) return `F${sourceIndex}-N2`;
+    return `F${sourceIndex}-R${String(positionIndex - 2).padStart(2, '0')}`;
+  }
 
   if (positionIndex < FLOWER_RING_POINT_COUNT) {
     return `F${sourceIndex}-R${String(positionIndex + 1).padStart(2, '0')}`;
   }
-  if (positionIndex === 12) return `F${sourceIndex}-N1`;
+  if (positionIndex === 12) return `F${sourceIndex}-N`;
   if (positionIndex === 13) return `F${sourceIndex}-C`;
-  return `F${sourceIndex}-S1`;
+  return `F${sourceIndex}-S`;
 }
 
 function buildFlowerGPX(pts){
@@ -616,6 +950,7 @@ function updateOutput(){
   if ($('coordGpxReverseOutput')) $('coordGpxReverseOutput').textContent = buildCoordGPX(reversed(currentPoints));
   if ($('coordForwardOutput')) $('coordForwardOutput').textContent = buildCoords(currentPoints);
   if ($('coordReverseOutput')) $('coordReverseOutput').textContent = buildCoords(reversed(currentPoints));
+  syncOutputViewer();
 }
 
 function draw(){
@@ -688,7 +1023,7 @@ function draw(){
     if (i === 0) ctx.moveTo(q.x, q.y);
     else ctx.lineTo(q.x, q.y);
   });
-  if ($('autoRoute') && $('autoRoute').checked && currentPoints.length > 1) {
+  if (getRouteMode() === 'shortest' && currentPoints.length > 1) {
     const first = xy(currentPoints[0]);
     ctx.lineTo(first.x, first.y);
   }
@@ -783,7 +1118,10 @@ function updateStats(){
 
   $('sCount').textContent = currentPoints.length + ' 個';
   if ($('sFruitTime')) $('sFruitTime').textContent = formatCountBasedMinutes(fruitCount, 4);
-  if ($('sFlowerTime')) $('sFlowerTime').textContent = formatCountBasedMinutes(flowerCount, 3);
+  if ($('sFlowerTime')) {
+    const flowerSecondsPerPoint = getFlowerMode() === 'north33' ? 1 : 3;
+    $('sFlowerTime').textContent = formatCountBasedMinutes(flowerCount, flowerSecondsPerPoint);
+  }
 }
 
 function initDragList(){
@@ -815,7 +1153,8 @@ function analyze(){
   currentPoints = orderPoints(pts);
   renderDragList();
   updateStats();
-  $('msg').textContent = '完成，共 ' + currentPoints.length + ' 個原始點位；收果版會展開為 ' + generateFruitPoints(currentPoints).length + ' 個跳點；種花版採用外圈 12 點＋北內點／中心／南內點，並依相鄰花田方向自動旋轉，共展開為 ' + generateFlowerPoints(currentPoints).length + ' 個跳點。';
+  const flowerModeLabel = getFlowerMode() === 'north33' ? '33 點北向圓形' : '15 點自動旋轉';
+  $('msg').textContent = '完成，共 ' + currentPoints.length + ' 個原始點位；收果版會展開為 ' + generateFruitPoints(currentPoints).length + ' 個跳點；種花版目前使用「' + flowerModeLabel + '」，共展開為 ' + generateFlowerPoints(currentPoints).length + ' 個跳點。';
   updateOutput();
   draw();
 }
@@ -983,7 +1322,36 @@ $('pngBtn').onclick = () => {
   a.click();
 };
 
-['autoRoute','showLabels'].forEach(id => {
+function updateFlowerModeDescription(){
+  const description = $('flowerModeDescription');
+  if (!description) return;
+
+  if (getFlowerMode() === 'north33') {
+    description.innerHTML = '每個原始座標依序產生 33 個種花點：中心點 → 向北約 10 公尺 → 向北約 20 公尺 → 單圈 30 點。圓形第 1 點同時位於正北約 30 公尺，第 30 點與第 1 點重疊；移動 CD 為每點 1 秒，每株約 33 秒。';
+  } else {
+    description.innerHTML = '每個原始座標產生 15 個種花點：外圈 12 點 → 內側入口點 → 中心點 → 內側出口點。內側路徑會依前後花田位置自動旋轉，以縮短花田之間的跳躍距離；每株約 45 秒。';
+  }
+}
+
+document.querySelectorAll('input[name="flowerMode"]').forEach(input => {
+  input.addEventListener('change', () => {
+    updateFlowerModeDescription();
+    if (currentPoints.length || $('input').value.trim()) analyze();
+    else {
+      updateStats();
+      updateOutput();
+    }
+  });
+});
+
+document.querySelectorAll('input[name="routeMode"]').forEach(input => {
+  input.addEventListener('change', () => {
+    if (currentPoints.length || $('input').value.trim()) analyze();
+    else draw();
+  });
+});
+
+['showLabels'].forEach(id => {
   if ($(id)) {
     $(id).addEventListener('change', () => {
       if (currentPoints.length || $('input').value.trim()) analyze();
@@ -1043,9 +1411,32 @@ function bindCollapseToggle(headerId, buttonId, contentId, sectionName){
 }
 
 bindCollapseToggle('paramHeader', 'toggleParamBtn', 'paramContent', '參數設定');
+bindCollapseToggle('inputHeader', 'toggleInputBtn', 'inputContent', '輸入內容');
 bindCollapseToggle('copyHeader', 'toggleCopyBtn', 'copyContent', '座標複製區');
 bindCollapseToggle('downloadHeader', 'toggleDownloadBtn', 'downloadContent', '座標下載區');
 bindCollapseToggle('outputHeader', 'toggleOutputBtn', 'outputContent', '轉換輸出');
+
+
+let selectedOutputType = 'fruit';
+let selectedOutputDirection = 'forward';
+const OUTPUT_VIEW_MAP = {
+  fruit:{label:'收果版',forward:'fruitForwardOutput',reverse:'fruitReverseOutput'},
+  flower:{label:'種花版',forward:'flowerForwardOutput',reverse:'flowerReverseOutput'},
+  coordGpx:{label:'純座標 GPX',forward:'coordGpxForwardOutput',reverse:'coordGpxReverseOutput'},
+  coord:{label:'純座標',forward:'coordForwardOutput',reverse:'coordReverseOutput'}
+};
+function syncOutputViewer(){
+  const config = OUTPUT_VIEW_MAP[selectedOutputType];
+  if (!config) return;
+  const source = $(config[selectedOutputDirection]);
+  if ($('outputViewerBox')) $('outputViewerBox').textContent = source ? source.textContent : '';
+  if ($('outputViewerTitle')) $('outputViewerTitle').textContent = `${config.label}（${selectedOutputDirection === 'forward' ? '正向' : '反向'}）`;
+  document.querySelectorAll('[data-output-type]').forEach(btn => btn.classList.toggle('active', btn.dataset.outputType === selectedOutputType));
+  document.querySelectorAll('[data-output-direction]').forEach(btn => btn.classList.toggle('active', btn.dataset.outputDirection === selectedOutputDirection));
+}
+document.querySelectorAll('[data-output-type]').forEach(btn => btn.addEventListener('click', () => {selectedOutputType = btn.dataset.outputType; syncOutputViewer();}));
+document.querySelectorAll('[data-output-direction]').forEach(btn => btn.addEventListener('click', () => {selectedOutputDirection = btn.dataset.outputDirection; syncOutputViewer();}));
+
 
 
 if ($('backToTopBtn')) $('backToTopBtn').onclick = () => {
@@ -1053,6 +1444,8 @@ if ($('backToTopBtn')) $('backToTopBtn').onclick = () => {
 };
 
 initDragList();
+updateFlowerModeDescription();
+syncOutputViewer();
 draw();
 </script>
 
