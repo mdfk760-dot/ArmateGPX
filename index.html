@@ -345,6 +345,125 @@
       }
     }
 
+  
+    /* ===== 排序操作體驗版 ===== */
+    .dragItem{
+      display:grid;
+      grid-template-columns:auto auto minmax(0,1fr) auto;
+      align-items:center;
+      gap:8px;
+      cursor:default;
+      padding:8px;
+    }
+    .dragHandle{
+      width:34px;
+      height:34px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      border-radius:10px;
+      color:var(--muted);
+      background:#fff8f2;
+      border:1px solid var(--line);
+      cursor:grab;
+      touch-action:none;
+      user-select:none;
+      font-size:18px;
+      line-height:1;
+    }
+    .dragHandle:active{cursor:grabbing}
+    .dragActions{
+      display:flex;
+      gap:5px;
+      align-items:center;
+      flex-wrap:nowrap;
+    }
+    .moveBtn{
+      min-width:38px!important;
+      min-height:34px!important;
+      padding:6px 8px!important;
+      border-radius:10px!important;
+      background:#fff!important;
+      color:var(--pink)!important;
+      border:1px solid var(--line)!important;
+      box-shadow:none!important;
+      font-size:13px!important;
+    }
+    .moveBtn:hover{background:#fff4f8!important;transform:none!important}
+    .moveBtn:disabled{opacity:.35;cursor:not-allowed}
+    .moveToRow{
+      grid-column:1/-1;
+      display:none;
+      grid-template-columns:auto minmax(72px,110px) auto;
+      gap:8px;
+      align-items:center;
+      padding:8px 4px 2px 42px;
+      color:var(--muted);
+      font-size:12px;
+      font-weight:800;
+    }
+    .dragItem.selected .moveToRow{display:grid}
+    .moveToInput{height:34px;padding:5px 8px;font-size:13px}
+    .dragCoord{overflow:hidden;text-overflow:ellipsis}
+    .sortExperienceHint{
+      margin-top:10px;
+      padding:10px 12px;
+      border:1px dashed var(--line);
+      border-radius:12px;
+      background:rgba(255,255,255,.65);
+      color:var(--muted);
+      font-size:12px;
+      font-weight:700;
+      line-height:1.6;
+    }
+    @media(max-width:980px){
+      .dragItem{
+        grid-template-columns:auto minmax(0,1fr);
+        gap:7px;
+      }
+      .dragHandle{display:none}
+      .dragNum{min-width:36px}
+      .dragCoord{font-size:13px;white-space:normal;word-break:break-all}
+      .dragActions{
+        grid-column:1/-1;
+        display:grid;
+        grid-template-columns:repeat(4,minmax(0,1fr));
+        width:100%;
+      }
+      .moveBtn{width:100%;font-size:12px!important;padding:7px 4px!important}
+      .moveToRow{padding-left:0;grid-template-columns:auto minmax(70px,1fr) auto}
+    }
+
+  
+    @media(max-width:980px){
+      
+
+      
+    }
+
+  
+    /* ===== 輸入內容按鈕：固定三欄完整排列 ===== */
+    .btns.analyze-group{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:12px;
+    }
+
+    .btns.analyze-group button{
+      width:100%;
+      min-width:0;
+      margin:0;
+    }
+
+    @media(max-width:980px){
+      .btns.analyze-group{
+        grid-template-columns:repeat(3,minmax(0,1fr));
+        gap:7px;
+      }
+
+      
+    }
+
   </style>
 </head>
 <body>
@@ -501,7 +620,8 @@
       <section class="card">
         <h2>🌼 5. 排序結果</h2>
         <div id="pointList" class="dragList"></div>
-        <div class="dragHint">提示：可直接拖曳下方編號調整順序，放開後會立即更新 GPX、統計與路徑圖。</div>
+        <div class="dragHint">桌機可按住 ☰ 把手拖曳；手機請使用上移／下移按鈕。點一下座標列可展開「移到指定位置」。</div>
+        <div class="sortExperienceHint">操作後會立即更新 GPX、統計與路徑圖。若要重新自動排序，可再點一次上方的「最短迴圈」。</div>
       </section>
       <section class="card" style="margin-top:14px">
         <h2>🌼 6. 路徑統計資訊</h2>
@@ -550,7 +670,7 @@
 </section>
 
   <button id="backToTopBtn" class="backToTop" type="button" title="回到頂部">回到<br>頂部</button>
-  <div class="footer">🌼 妖妖_GPX路徑生成器 v 2026-07-12 分段切換器・輸入可收合版</div>
+  <div class="footer">🌼 妖妖_GPX路徑生成器 v 2026-07-12 僅保留拖曳把手版</div>
 </div>
 
 
@@ -1055,21 +1175,82 @@ function draw(){
 function renderDragList(){
   const list = $('pointList');
   list.innerHTML = '';
+  const isTouch = window.matchMedia('(pointer: coarse)').matches;
+
   currentPoints.forEach((p, i) => {
     const item = document.createElement('div');
     item.className = 'dragItem';
-    item.draggable = true;
+    item.draggable = !isTouch;
     item.dataset.index = i;
-    item.innerHTML = `<span class="dragNum">${String(i + 1).padStart(2, '0')}</span><span class="dragCoord">${p.lat.toFixed(6)}, ${p.lon.toFixed(6)}</span>`;
 
-    item.addEventListener('dragstart', () => item.classList.add('dragging'));
+    item.innerHTML = `
+      <span class="dragHandle" title="拖曳排序" aria-label="拖曳第 ${i + 1} 筆">☰</span>
+      <span class="dragNum">${String(i + 1).padStart(2, '0')}</span>
+      <span class="dragCoord">${p.lat.toFixed(6)}, ${p.lon.toFixed(6)}</span>
+      <span class="dragActions sortActions">
+        
+        
+        
+        
+      </span>
+      <span class="moveToRow">
+        <span>移到第</span>
+        <input class="moveToInput" type="number" min="1" max="${currentPoints.length}" value="${i + 1}" inputmode="numeric" aria-label="移到指定位置">
+        <button class="moveBtn moveToConfirm" type="button">移動</button>
+      </span>`;
+
+    const handle = item.querySelector('.dragHandle');
+    let dragArmed = false;
+    handle?.addEventListener('mousedown', () => { dragArmed = true; });
+    item.addEventListener('dragstart', e => {
+      if (!dragArmed) {
+        e.preventDefault();
+        return;
+      }
+      item.classList.add('dragging');
+    });
     item.addEventListener('dragend', () => {
+      dragArmed = false;
       item.classList.remove('dragging');
       applyDragOrder();
     });
 
+    item.querySelector('.dragCoord').addEventListener('click', () => {
+      item.classList.toggle('selected');
+    });
+
+    item.querySelector('.moveToConfirm').addEventListener('click', e => {
+      e.stopPropagation();
+      const input = item.querySelector('.moveToInput');
+      movePointTo(i, Number(input.value) - 1);
+    });
+
     list.appendChild(item);
   });
+}
+
+
+function commitManualOrder(next){
+  currentPoints = next.map((p, i) => ({...p, num: i + 1}));
+  updateAfterManualOrder();
+}
+
+function movePointTo(fromIndex, toIndex){
+  const n = currentPoints.length;
+  if (!n) return;
+  const target = Math.max(0, Math.min(n - 1, Number.isFinite(toIndex) ? toIndex : fromIndex));
+  if (target === fromIndex) return;
+  const next = currentPoints.slice();
+  const [moved] = next.splice(fromIndex, 1);
+  next.splice(target, 0, moved);
+  commitManualOrder(next);
+}
+
+function movePointByAction(index, action){
+  if (action === 'first') return movePointTo(index, 0);
+  if (action === 'up') return movePointTo(index, index - 1);
+  if (action === 'down') return movePointTo(index, index + 1);
+  if (action === 'last') return movePointTo(index, currentPoints.length - 1);
 }
 
 function getDragAfterElement(container, y){
@@ -1157,6 +1338,21 @@ function analyze(){
   $('msg').textContent = '完成，共 ' + currentPoints.length + ' 個原始點位；收果版會展開為 ' + generateFruitPoints(currentPoints).length + ' 個跳點；種花版目前使用「' + flowerModeLabel + '」，共展開為 ' + generateFlowerPoints(currentPoints).length + ' 個跳點。';
   updateOutput();
   draw();
+}
+
+
+function loadSortDemo(){
+  $('input').value = `25.049805,121.295112
+25.050127,121.294684
+25.049566,121.294193
+25.048997,121.294512
+25.048721,121.295084
+25.049218,121.295642`;
+  if ($('autoRoute')) $('autoRoute').checked = false;
+  const pastedMode = document.querySelector('input[name="routeMode"][value="paste"]');
+  if (pastedMode) pastedMode.checked = true;
+  analyze();
+  $('msg').textContent = '已載入 6 筆排序示範座標，可直接測試上下移、最前、最後、指定位置與桌機拖曳。';
 }
 
 $('analyzeBtn').onclick = analyze;
