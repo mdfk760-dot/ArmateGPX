@@ -87,8 +87,9 @@
       </div>
       <div id="paramContent">
         <div class="controls">
-          <div class="smallcard full"><label>路徑排序</label><div class="toggleline"><span>依貼上順序</span><label class="switch"><input id="autoRoute" type="checkbox"><span class="slider"></span></label><span>最短路徑</span></div></div>
-          <div class="smallcard full"><label>種花模式</label><div class="toggleline"><span>跳點（15點+15點）</span><label class="switch"><input id="flowerInnerMode" type="checkbox"><span class="slider"></span></label><span>跳點（15點+9點）</span></div><div class="hint">此開關只改變種花版第二圈的偏移方式。</div></div>
+          <div class="smallcard full"><label>路徑排序</label><div class="toggleline"><span>依貼上順序</span><label class="switch"><input id="autoRoute" type="checkbox"><span class="slider"></span></label><span>最短迴圈</span></div></div>
+          <div class="smallcard full"><label>種花模式</label><div class="toggleline"><span>每個原始座標產生 15 個種花點：外圈 12 點 → 內側北點 → 中心點 → 內側南點。</span></div><div class="hint">外圈以原始座標為中心，使用相同的南北與東西經緯度差值產生約 30 公尺半徑的 12 個均勻點；外圈起點與終點不重疊。<br>
+內側路徑會依前後花田的位置自動旋轉，使起點盡量接近前一個花田、終點盡量朝向下一個花田，以縮短花田之間的跳躍距離。</div></div>
         </div>
         <div>
 <div class="smallcard" style="margin-top:12px">
@@ -106,7 +107,7 @@
 <div class="btns analyze-group" style="margin-top:12px">
   <button class="light" id="clearBtn" type="button">清空</button>
   <button class="blue" id="pasteBtn" type="button">貼上剪貼簿</button>
-  <button class="green" id="analyzeBtn">分析排序</button>
+  <button class="green" id="analyzeBtn" type="button">分析排序</button>
 </div>
 </div>
       
@@ -340,16 +341,18 @@ function dist(a, b){
   return 2 * R * Math.asin(Math.sqrt(h));
 }
 
-function total(pts){
+function total(pts, closeLoop = false){
   let s = 0;
   for (let i = 0; i < pts.length - 1; i++) s += dist(pts[i], pts[i + 1]);
+  if (closeLoop && pts.length > 1) s += dist(pts[pts.length - 1], pts[0]);
   return s;
 }
 
-function nearestSort(pts){
+// 從指定起點開始，以最近鄰方式建立初始路徑。
+function nearestSortFromStart(pts, startIndex){
   if (pts.length < 3) return pts.slice();
   const rem = pts.slice();
-  const route = [rem.shift()];
+  const route = [rem.splice(startIndex, 1)[0]];
   while (rem.length) {
     let bi = 0;
     let bd = Infinity;
@@ -375,16 +378,30 @@ function angleSort(pts){
   );
 }
 
-function twoOpt(path){
+// 封閉迴圈 2-opt：包含「最後一點 → 第一點」這條邊一起最佳化。
+function twoOptClosed(path){
   let best = path.slice();
+  const n = best.length;
+  if (n < 4) return best;
+
   let changed = true;
   while (changed) {
     changed = false;
-    for (let i = 1; i < best.length - 2; i++) {
-      for (let k = i + 1; k < best.length - 1; k++) {
-        const a = best[i - 1], b = best[i], c = best[k], d = best[k + 1];
-        if (dist(a,b) + dist(c,d) > dist(a,c) + dist(b,d) + 1e-9) {
-          best.splice(i, k - i + 1, ...best.slice(i, k + 1).reverse());
+    for (let i = 0; i < n - 1; i++) {
+      for (let k = i + 1; k < n; k++) {
+        // 相鄰邊無須交換；第一邊與最後一邊也是相鄰邊。
+        if (k === i + 1 || (i === 0 && k === n - 1)) continue;
+
+        const a = best[i];
+        const b = best[(i + 1) % n];
+        const c = best[k];
+        const d = best[(k + 1) % n];
+        const current = dist(a, b) + dist(c, d);
+        const swapped = dist(a, c) + dist(b, d);
+
+        if (swapped + 1e-9 < current) {
+          const reversedPart = best.slice(i + 1, k + 1).reverse();
+          best.splice(i + 1, k - i, ...reversedPart);
           changed = true;
         }
       }
@@ -393,12 +410,32 @@ function twoOpt(path){
   return best;
 }
 
+// 自動嘗試每一個原始點作為起點，挑選封閉總距離最短的結果。
+function shortestClosedRoute(pts){
+  if (pts.length < 3) return pts.slice();
+
+  let bestRoute = null;
+  let bestDistance = Infinity;
+
+  for (let startIndex = 0; startIndex < pts.length; startIndex++) {
+    const initial = nearestSortFromStart(pts, startIndex);
+    const improved = twoOptClosed(initial);
+    const loopDistance = total(improved, true);
+
+    if (loopDistance + 1e-9 < bestDistance) {
+      bestDistance = loopDistance;
+      bestRoute = improved;
+    }
+  }
+
+  return bestRoute || pts.slice();
+}
+
 function orderPoints(pts){
   let out = pts.slice();
 
   if ($('autoRoute') && $('autoRoute').checked) {
-    out = nearestSort(out);
-    out = twoOpt(out);
+    out = shortestClosedRoute(out);
   }
 
   return out.map((p, i) => ({...p, num: i + 1}));
@@ -435,46 +472,19 @@ function generateFruitPoints(pts){
 
 function buildFruitGPX(pts){
   const fruitPts = generateFruitPoints(pts);
+  const positionLabels = ['L', 'M', 'R'];
   return `<?xml version="1.0" encoding="UTF-8"?>
 <gpx version="1.1" creator="XiaoXiao">
-${fruitPts.map((p,i)=>`  <wpt lat="${escapeXml(p.lat.toFixed(6))}" lon="${escapeXml(p.lon.toFixed(6))}"><name>P${i+1}</name></wpt>`).join('\n')}
+${fruitPts.map((p,i) => {
+  const sourceIndex = Math.floor(i / 3) + 1;
+  const positionLabel = positionLabels[i % 3];
+  return `  <wpt lat="${escapeXml(p.lat.toFixed(6))}" lon="${escapeXml(p.lon.toFixed(6))}"><name>P${sourceIndex}-${positionLabel}</name></wpt>`;
+}).join('\n')}
 </gpx>`;
 }
 
 
-// 種花跳點邏輯：第一圈固定為外圈 15 點；第二圈可用開關切換。
-// 開啟 flowerInnerMode：第二圈為內圈 9 點；關閉：第二圈再次使用外圈 15 點。
-// 產生順序會先跑完所有點的第一圈，再跑完所有點的第二圈。
-const FLOWER_OUTER_OFFSETS = [
-  [ 0.000270,  0.000000],
-  [ 0.000202,  0.000117],
-  [ 0.000135,  0.000234],
-  [ 0.000000,  0.000234],
-  [-0.000135,  0.000234],
-  [-0.000203,  0.000117],
-  [-0.000270,  0.000000],
-  [-0.000203, -0.000117],
-  [-0.000135, -0.000234],
-  [ 0.000000, -0.000234],
-  [ 0.000135, -0.000234],
-  [ 0.000202, -0.000117],
-  [ 0.000135,  0.000000],
-  [ 0.000000,  0.000000],
-  [-0.000135,  0.000000],
-];
-
-const FLOWER_INNER_OFFSETS = [
-  [ 0.000135,  0.000000],
-  [ 0.000135,  0.000135],
-  [ 0.000000,  0.000135],
-  [-0.000135,  0.000135],
-  [-0.000135,  0.000000],
-  [-0.000135, -0.000135],
-  [ 0.000000, -0.000135],
-  [ 0.000135, -0.000135],
-  [ 0.000135,  0.000000],
-];
-
+// 共用經緯度偏移函式：收果版與其他固定偏移功能都會使用。
 function offsetPoint(p, offset){
   return {
     lat: p.lat + offset[0],
@@ -484,35 +494,98 @@ function offsetPoint(p, offset){
   };
 }
 
-function useFlowerInnerMode(){
-  return Boolean($('flowerInnerMode') && $('flowerInnerMode').checked);
+// 種花跳點邏輯：每個原始座標固定產生 15 點（45 秒）：
+// 1. 半徑約 30 公尺的外圈 12 點，不重複首點。
+// 2. 外圈完成後依序走北側內點、中心點、南側內點。
+// 3. 依前一個與下一個原始座標方向自動旋轉整組圖形，降低花田間跳躍距離。
+//
+// 沿用原本固定經緯度差值：30 公尺約 0.000270 度，內點約 15 公尺為 0.000135 度；
+// 東西向與南北向使用相同度數偏移，不依所在地緯度套用 cos 修正。
+const FLOWER_RING_RADIUS_DEGREES = 0.000270;
+const FLOWER_INNER_RADIUS_DEGREES = 0.000135;
+const FLOWER_RING_POINT_COUNT = 12;
+const FLOWER_POINTS_PER_SOURCE = 15;
+
+function normalizeAngle(angle){
+  const full = Math.PI * 2;
+  return ((angle % full) + full) % full;
 }
 
-function getFlowerSecondOffsets(){
-  return useFlowerInnerMode() ? FLOWER_INNER_OFFSETS : FLOWER_OUTER_OFFSETS;
+// 方位角：正北為 0，正東為 π/2。
+function bearingAngle(from, to){
+  return Math.atan2(to.lon - from.lon, to.lat - from.lat);
+}
+
+function circularAverage(a, b){
+  const x = Math.cos(a) + Math.cos(b);
+  const y = Math.sin(a) + Math.sin(b);
+  if (Math.abs(x) < 1e-12 && Math.abs(y) < 1e-12) return normalizeAngle(a);
+  return normalizeAngle(Math.atan2(y, x));
+}
+
+// 圖形第一點位於 rotationAngle 方向的外圈；最後一點位於其反方向的內圈。
+// 讓第一點盡量朝向前一株，最後一點盡量朝向下一株。
+function getFlowerRotation(pts, index){
+  const n = pts.length;
+  if (n <= 1) return 0;
+
+  const current = pts[index];
+  const previous = pts[(index - 1 + n) % n];
+  const next = pts[(index + 1) % n];
+  const entryTarget = bearingAngle(current, previous);
+  const exitTargetAsEntryAxis = normalizeAngle(bearingAngle(current, next) + Math.PI);
+
+  // 起點方向同時兼顧「朝向前一株」與「其反方向朝向下一株」。
+  return circularAverage(entryTarget, exitTargetAsEntryAxis);
+}
+
+function rotatedOffset(radius, angle){
+  return [radius * Math.cos(angle), radius * Math.sin(angle)];
+}
+
+function generateFlowerPattern(p, rotationAngle = 0){
+  const pattern = [];
+
+  // 外圈 12 點：由自動判斷的入口方向開始，順時針繞一圈，不重複首點。
+  for (let i = 0; i < FLOWER_RING_POINT_COUNT; i++) {
+    const angle = rotationAngle + 2 * Math.PI * i / FLOWER_RING_POINT_COUNT;
+    pattern.push(offsetPoint(p, rotatedOffset(FLOWER_RING_RADIUS_DEGREES, angle)));
+  }
+
+  // 由入口側內點穿過中心，再由相反方向離開，作為前往下一株的出口。
+  pattern.push(offsetPoint(p, rotatedOffset(FLOWER_INNER_RADIUS_DEGREES, rotationAngle)));
+  pattern.push({...p});
+  pattern.push(offsetPoint(p, rotatedOffset(FLOWER_INNER_RADIUS_DEGREES, rotationAngle + Math.PI)));
+
+  return pattern;
 }
 
 function generateFlowerPoints(pts){
-  const firstRing = [];
-  const secondRing = [];
-  const secondOffsets = getFlowerSecondOffsets();
-
-  pts.forEach(p => {
-    FLOWER_OUTER_OFFSETS.forEach(offset => firstRing.push(offsetPoint(p, offset)));
+  const out = [];
+  pts.forEach((p, index) => {
+    const rotation = getFlowerRotation(pts, index);
+    out.push(...generateFlowerPattern(p, rotation));
   });
+  return out;
+}
 
-  pts.forEach(p => {
-    secondOffsets.forEach(offset => secondRing.push(offsetPoint(p, offset)));
-  });
+function getFlowerPointName(index){
+  const sourceIndex = Math.floor(index / FLOWER_POINTS_PER_SOURCE) + 1;
+  const positionIndex = index % FLOWER_POINTS_PER_SOURCE;
 
-  return firstRing.concat(secondRing);
+  if (positionIndex < FLOWER_RING_POINT_COUNT) {
+    return `F${sourceIndex}-R${String(positionIndex + 1).padStart(2, '0')}`;
+  }
+  if (positionIndex === 12) return `F${sourceIndex}-N1`;
+  if (positionIndex === 13) return `F${sourceIndex}-C`;
+  return `F${sourceIndex}-S1`;
 }
 
 function buildFlowerGPX(pts){
   const flowerPts = generateFlowerPoints(pts);
   return `<?xml version="1.0" encoding="UTF-8"?>
 <gpx version="1.1" creator="XiaoXiao">
-${flowerPts.map((p,i)=>`  <wpt lat="${escapeXml(p.lat.toFixed(6))}" lon="${escapeXml(p.lon.toFixed(6))}"><name>F${i+1}</name></wpt>`).join('\n')}
+${flowerPts.map((p,i)=>`  <wpt lat="${escapeXml(p.lat.toFixed(6))}" lon="${escapeXml(p.lon.toFixed(6))}"><name>${getFlowerPointName(i)}</name></wpt>`).join('\n')}
 </gpx>`;
 }
 
@@ -616,6 +689,10 @@ function draw(){
     if (i === 0) ctx.moveTo(q.x, q.y);
     else ctx.lineTo(q.x, q.y);
   });
+  if ($('autoRoute') && $('autoRoute').checked && currentPoints.length > 1) {
+    const first = xy(currentPoints[0]);
+    ctx.lineTo(first.x, first.y);
+  }
   ctx.stroke();
   ctx.setLineDash([]);
 
@@ -686,10 +763,9 @@ function updateAfterManualOrder(){
 }
 
 
-function formatCountBasedMinutes(pointCount){
+function formatCountBasedMinutes(pointCount, secondsPerPoint = 4){
   if (!Number.isFinite(pointCount) || pointCount <= 0) return '-';
-  // 每個跳點原本估 3 秒，實際執行會有約 1 秒延遲，因此改為每點 4 秒。
-  const totalSeconds = Math.round(pointCount * 4);
+  const totalSeconds = Math.round(pointCount * secondsPerPoint);
   const minutes = Math.floor(totalSeconds / 60);
   const seconds = totalSeconds % 60;
   return `${minutes} 分 ${seconds} 秒`;
@@ -707,8 +783,8 @@ function updateStats(){
   const flowerCount = generateFlowerPoints(currentPoints).length;
 
   $('sCount').textContent = currentPoints.length + ' 個';
-  if ($('sFruitTime')) $('sFruitTime').textContent = formatCountBasedMinutes(fruitCount);
-  if ($('sFlowerTime')) $('sFlowerTime').textContent = formatCountBasedMinutes(flowerCount);
+  if ($('sFruitTime')) $('sFruitTime').textContent = formatCountBasedMinutes(fruitCount, 4);
+  if ($('sFlowerTime')) $('sFlowerTime').textContent = formatCountBasedMinutes(flowerCount, 3);
 }
 
 function initDragList(){
@@ -740,8 +816,7 @@ function analyze(){
   currentPoints = orderPoints(pts);
   renderDragList();
   updateStats();
-  const flowerModeText = useFlowerInnerMode() ? '跳點（15點+9點）' : '跳點（15點+15點）';
-  $('msg').textContent = '完成，共 ' + currentPoints.length + ' 個原始點位；收果版會展開為 ' + generateFruitPoints(currentPoints).length + ' 個跳點；種花版模式：' + flowerModeText + '，會展開為 ' + generateFlowerPoints(currentPoints).length + ' 個跳點。';
+  $('msg').textContent = '完成，共 ' + currentPoints.length + ' 個原始點位；收果版會展開為 ' + generateFruitPoints(currentPoints).length + ' 個跳點；種花版採用外圈 12 點＋北內點／中心／南內點，並依相鄰花田方向自動旋轉，共展開為 ' + generateFlowerPoints(currentPoints).length + ' 個跳點。';
   updateOutput();
   draw();
 }
@@ -775,8 +850,21 @@ async function pasteFromClipboard(){
     const end = input.selectionEnd ?? input.value.length;
     input.value = input.value.slice(0, start) + text + input.value.slice(end);
     const pos = start + text.length;
-    input.focus();
-    input.setSelectionRange(pos, pos);
+    const isMobileInput = window.matchMedia('(max-width: 980px), (pointer: coarse)').matches;
+
+    if (isMobileInput) {
+      // 手機版貼上完成後移除焦點，讓螢幕鍵盤自動收起。
+      input.setSelectionRange(pos, pos);
+      input.blur();
+      if (document.activeElement && typeof document.activeElement.blur === 'function') {
+        document.activeElement.blur();
+      }
+    } else {
+      // 桌機版保留游標位置，方便繼續編輯。
+      input.focus();
+      input.setSelectionRange(pos, pos);
+    }
+
     $('msg').textContent = '已貼上剪貼簿內容。';
   } catch (err) {
     $('msg').textContent = '無法讀取剪貼簿。請確認瀏覽器權限，或改用 Ctrl+V 貼上。';
@@ -896,17 +984,10 @@ $('pngBtn').onclick = () => {
   a.click();
 };
 
-['autoRoute','showLabels','flowerInnerMode'].forEach(id => {
+['autoRoute','showLabels'].forEach(id => {
   if ($(id)) {
-    const eventName = id === 'speedInput' ? 'input' : 'change';
-    $(id).addEventListener(eventName, () => {
-      if (id === 'flowerInnerMode' && currentPoints.length) {
-        updateStats();
-        updateOutput();
-        const flowerModeText = useFlowerInnerMode() ? '跳點（15點+9點）' : '跳點（15點+15點）';
-        $('msg').textContent = '已切換種花版模式：' + flowerModeText + '；目前會展開為 ' + generateFlowerPoints(currentPoints).length + ' 個跳點。';
-      }
-      else if (currentPoints.length || $('input').value.trim()) analyze();
+    $(id).addEventListener('change', () => {
+      if (currentPoints.length || $('input').value.trim()) analyze();
       else draw();
     });
   }
