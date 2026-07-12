@@ -1730,9 +1730,9 @@ function updateFlowerModeDescription(){
   if (!description) return;
 
   if (getFlowerMode() === 'north33') {
-    description.innerHTML = '每個原始座標依序產生 33 個種花點：中心點 → 向北約 10 公尺 → 向北約 20 公尺 → 單圈 30 點。圓形第 1 點同時位於正北約 30 公尺，第 30 點與第 1 點重疊；移動 CD 為每點 1 秒，每株約 33 秒。';
+    description.innerHTML = '每個原始座標依序產生 33 個種花點：中心點 → 向北約 10 公尺 → 向北約 20 公尺 → 單圈 30 點。適合移動 CD 為每點 1 秒的程式；每株約 33 秒。';
   } else {
-    description.innerHTML = '每個原始座標產生 15 個種花點：外圈 12 點 → 內側入口點 → 中心點 → 內側出口點。內側路徑會依前後花田位置自動旋轉，以縮短花田之間的跳躍距離；每株約 45 秒。';
+    description.innerHTML = '每個原始座標產生 15 個種花點：外圈 12 點 → 內側入口點 → 中心點 → 內側出口點。適合移動 CD 為每點 3 秒的程式；每株約 45 秒。';
   }
 }
 
