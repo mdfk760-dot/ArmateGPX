@@ -85,7 +85,7 @@
     .slider{background:#d8cec8}.switch input:checked+.slider{background:var(--green)}.dragItem{border-color:var(--line);border-radius:14px;box-shadow:0 3px 10px rgba(112,79,61,.06)}.canvasWrap{border:0;border-radius:18px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.15)}.sectionTitleRow{margin-bottom:14px}.collapseBtn{color:#d95f83}.backToTop{background:var(--pink);border:2px solid rgba(255,255,255,.9);box-shadow:0 10px 24px rgba(112,79,61,.22)}.footer{color:var(--muted);font-size:12px;line-height:1.6;letter-spacing:.02em}.msg{color:#d95f83}
     .outputViewer{display:grid;gap:12px}.outputToolbar{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center}.outputTypeTabs,.outputDirectionTabs{display:flex;gap:8px;flex-wrap:wrap}.outputTabBtn{min-height:38px!important;padding:9px 13px!important;background:#fff!important;color:var(--muted)!important;border:1px solid var(--line)!important;box-shadow:none!important;font-size:13px!important}.outputTabBtn.active{background:var(--pink)!important;color:#fff!important;border-color:var(--pink)!important}.outputDirectionTabs .outputTabBtn.active{background:var(--green)!important;border-color:var(--green)!important}
     .outputViewerHead{display:flex;justify-content:space-between;align-items:center;gap:12px}.outputViewerTitle{font-size:14px;font-weight:900;color:#d95f83}.outputViewerHint{font-size:12px;color:var(--muted);font-weight:700}.outputViewerBox{height:360px;background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px;overflow:auto;white-space:pre;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px;line-height:1.55;color:var(--text)}.outputHiddenStore{display:none!important}
-    @media(max-width:980px){.wrap{width:min(100% - 20px,760px);padding:18px 0 34px}.title{padding-left:12px;padding-right:12px}.title h1{font-size:26px}.title p{font-size:13px}.card{border-radius:22px;padding:15px}.btns.analyze-group{grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}.btns.analyze-group button{padding:10px 5px;font-size:12px;white-space:nowrap}.copy-group{grid-template-columns:repeat(2,minmax(0,1fr))}.copyBlock button{font-size:13px}.canvasWrap canvas{min-height:390px}.outputToolbar{grid-template-columns:1fr}.outputTypeTabs,.outputDirectionTabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.outputTabBtn{width:100%}.outputViewerHead{align-items:flex-start;flex-direction:column}.outputViewerBox{height:320px}}
+    @media(max-width:980px){.wrap{width:min(calc(100% - 20px),760px);padding:18px 0 34px}.title{padding-left:12px;padding-right:12px}.title h1{font-size:26px}.title p{font-size:13px}.card{border-radius:22px;padding:15px}.btns.analyze-group{grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}.btns.analyze-group button{padding:10px 5px;font-size:12px;white-space:nowrap}.copy-group{grid-template-columns:repeat(2,minmax(0,1fr))}.copyBlock button{font-size:13px}.canvasWrap canvas{min-height:390px}.outputToolbar{grid-template-columns:1fr}.outputTypeTabs,.outputDirectionTabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.outputTabBtn{width:100%}.outputViewerHead{align-items:flex-start;flex-direction:column}.outputViewerBox{height:320px}}
 
   
 
@@ -464,6 +464,213 @@
       
     }
 
+  
+    /* ===== 手機版寬度與水平溢出修正 ===== */
+    html,
+    body{
+      width:100%;
+      max-width:100%;
+      overflow-x:hidden;
+    }
+
+    *,
+    *::before,
+    *::after{
+      box-sizing:border-box;
+    }
+
+    .wrap{
+      width:100%;
+      max-width:1260px;
+      margin-left:auto;
+      margin-right:auto;
+    }
+
+    .grid,
+    .side,
+    .controls,
+    .subgrid,
+    .copyGrid,
+    .outputViewer,
+    .outputToolbar,
+    .outputTypeTabs,
+    .outputDirectionTabs,
+    .card,
+    .smallcard,
+    .copyBlock,
+    .stats,
+    .stat,
+    .vizHead,
+    .toggleline{
+      min-width:0;
+      max-width:100%;
+    }
+
+    .card,
+    .smallcard,
+    .copyBlock,
+    textarea,
+    input,
+    select,
+    .dragList,
+    .canvasWrap,
+    .outputViewerBox{
+      width:100%;
+      max-width:100%;
+    }
+
+    .canvasWrap{
+      overflow:hidden;
+    }
+
+    .canvasWrap canvas{
+      display:block;
+      width:100%!important;
+      max-width:100%!important;
+      height:auto;
+    }
+
+    .vizHead{
+      flex-wrap:wrap;
+    }
+
+    .vizHead > h2{
+      min-width:0;
+      flex:1 1 240px;
+    }
+
+    .vizHead > .toggleline{
+      flex:0 1 auto;
+      justify-content:flex-end;
+    }
+
+    .dragItem{
+      min-width:0;
+      max-width:100%;
+    }
+
+    .dragCoord{
+      min-width:0;
+      max-width:100%;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+
+    .outputViewerBox{
+      overflow:auto;
+      -webkit-overflow-scrolling:touch;
+    }
+
+    @media(max-width:980px){
+      .wrap{
+        width:100%;
+        max-width:100%;
+        padding:18px 10px 34px;
+      }
+
+      .grid,
+      .side,
+      .subgrid,
+      .controls{
+        grid-template-columns:minmax(0,1fr);
+      }
+
+      .card{
+        width:100%;
+        max-width:100%;
+        padding:15px;
+      }
+
+      .title{
+        width:100%;
+        max-width:100%;
+      }
+
+      .copyGrid,
+      .outputGrid{
+        grid-template-columns:minmax(0,1fr);
+      }
+
+      .vizHead{
+        align-items:flex-start;
+      }
+
+      .vizHead > .toggleline{
+        width:100%;
+        justify-content:flex-start;
+      }
+
+      .canvasWrap canvas{
+        min-height:0;
+      }
+
+      .dragList{
+        overflow-x:hidden;
+      }
+
+      .dragItem{
+        grid-template-columns:auto auto minmax(0,1fr);
+      }
+
+      .dragHandle{
+        display:flex;
+      }
+
+      .dragCoord{
+        white-space:normal;
+        overflow-wrap:anywhere;
+        word-break:break-word;
+      }
+
+      .outputToolbar{
+        grid-template-columns:minmax(0,1fr);
+      }
+
+      .outputTypeTabs,
+      .outputDirectionTabs{
+        grid-template-columns:repeat(2,minmax(0,1fr));
+      }
+
+      .outputTabBtn{
+        min-width:0;
+        white-space:normal;
+      }
+
+      .backToTop{
+        right:max(14px,env(safe-area-inset-right));
+        bottom:max(14px,env(safe-area-inset-bottom));
+      }
+    }
+
+    @media(max-width:430px){
+      .wrap{
+        padding-left:8px;
+        padding-right:8px;
+      }
+
+      .card{
+        padding:14px;
+      }
+
+      .btns.analyze-group{
+        gap:7px;
+      }
+
+      .btns.analyze-group button{
+        min-width:0;
+        padding-left:4px!important;
+        padding-right:4px!important;
+        white-space:normal;
+      }
+
+      .routeModeOption span,
+      .flowerModeOption span{
+        padding-left:5px;
+        padding-right:5px;
+        font-size:11px;
+      }
+    }
+
   </style>
 </head>
 <body>
@@ -620,8 +827,8 @@
       <section class="card">
         <h2>🌼 5. 排序結果</h2>
         <div id="pointList" class="dragList"></div>
-        <div class="dragHint">桌機可按住 ☰ 把手拖曳；手機請使用上移／下移按鈕。點一下座標列可展開「移到指定位置」。</div>
-        <div class="sortExperienceHint">操作後會立即更新 GPX、統計與路徑圖。若要重新自動排序，可再點一次上方的「最短迴圈」。</div>
+        <div class="dragHint">可按住 ☰ 拖曳把手調整座標順序；放開後會立即更新 GPX、統計與路徑圖。</div>
+        <div class="sortExperienceHint">若要重新自動排序，可切換至上方的「最短迴圈」。</div>
       </section>
       <section class="card" style="margin-top:14px">
         <h2>🌼 6. 路徑統計資訊</h2>
@@ -670,7 +877,7 @@
 </section>
 
   <button id="backToTopBtn" class="backToTop" type="button" title="回到頂部">回到<br>頂部</button>
-  <div class="footer">🌼 妖妖_GPX路徑生成器 v 2026-07-12 僅保留拖曳把手版</div>
+  <div class="footer">🌼 妖妖_GPX路徑生成器 v 2026-07-12 手機版寬度修正版</div>
 </div>
 
 
