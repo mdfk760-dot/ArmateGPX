@@ -376,6 +376,7 @@
       display:flex;
       gap:5px;
       align-items:center;
+      justify-content:flex-end;
       flex-wrap:nowrap;
     }
     .moveBtn{
@@ -671,9 +672,55 @@
       }
     }
 
+    /* ===== 路徑視覺化三版本 + 排序/統計同列 ===== */
+    .visualModeTabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;width:min(100%,680px);border:0;border-radius:0;overflow:visible;background:transparent;box-shadow:none;margin:0}
+    .visualModeBtn{min-width:0!important;min-height:48px!important;padding:11px 20px!important;border:1px solid #efb9c8!important;border-radius:14px!important;background:#fff!important;color:var(--muted)!important;box-shadow:0 2px 7px rgba(112,79,61,.05)!important;font-size:14px!important;font-weight:900!important}
+    .visualModeBtn + .visualModeBtn{border-left:1px solid #efb9c8!important}
+    .visualModeBtn:first-child,.visualModeBtn:last-child{border-radius:14px!important}
+    .visualModeBtn:hover{background:rgba(239,125,155,.08)!important;transform:translateY(-1px)!important}.visualModeBtn.active{background:var(--pink)!important;color:#fff!important;border-color:var(--pink)!important}
+    .resultStatsRow{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(280px,.55fr);gap:14px;margin-top:14px;align-items:stretch}
+    .resultStatsRow>.card{margin-top:0!important;min-width:0}.resultStatsRow .stats{height:100%;align-content:start}
+    .visualTools{display:flex;align-items:center;justify-content:flex-end;gap:10px;flex-wrap:wrap}
+    .labelModeSwitch{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0;min-width:220px;border:1px solid #efb9c8;border-radius:999px;background:#fff;overflow:hidden;box-shadow:0 2px 7px rgba(112,79,61,.05)}
+    .labelModeOption{display:block;margin:0;min-width:0;cursor:pointer}
+    .labelModeOption input{position:absolute;opacity:0;pointer-events:none}
+    .labelModeOption span{display:flex;align-items:center;justify-content:center;min-height:46px;padding:9px 14px;background:#fff;color:var(--muted);font-size:13px;font-weight:900;line-height:1.3;text-align:center;transition:background .15s ease,color .15s ease}
+    .labelModeOption:first-child span{border-radius:999px 0 0 999px}
+    .labelModeOption:last-child span{border-radius:0 999px 999px 0;border-left:1px solid #efb9c8}
+    .labelModeOption:hover span{background:rgba(239,125,155,.08)}
+    .labelModeOption input:checked+span{background:var(--pink);color:#fff}
+    .labelModeOption input:focus-visible+span{outline:3px solid rgba(239,125,155,.22);outline-offset:-3px}
+    #pngBtn{min-width:150px!important;min-height:46px!important;padding:10px 20px!important;background:#f4e4d7!important;color:#6d5142!important;border:1px solid #dfc3ad!important;font-weight:900!important}
+    #pngBtn:hover{background:#eed9c8!important;color:#5c4336!important}
+    @media(max-width:980px){.resultStatsRow{grid-template-columns:minmax(0,1fr)}.visualModeTabs{width:100%;gap:7px}.visualModeBtn{min-height:44px!important;padding:9px 7px!important;font-size:12px!important}.visualTools{width:100%;justify-content:space-between}.labelModeSwitch{flex:1 1 220px}.visualTools #pngBtn{flex:1 1 150px;min-width:140px!important}}
+    @media(max-width:520px){.visualTools{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.labelModeSwitch{width:100%;min-width:0}.labelModeOption span{min-height:44px;padding:8px 6px;font-size:12px}.visualTools #pngBtn{width:100%;min-width:0!important;padding-left:8px!important;padding-right:8px!important}}
+
+
+    /* ===== 網站新版提醒 ===== */
+    .site-update-banner{
+      position:fixed;top:14px;left:50%;transform:translateX(-50%) translateY(-18px);
+      z-index:100000;width:min(560px,calc(100% - 28px));display:flex;align-items:center;
+      justify-content:space-between;gap:12px;padding:12px 14px;border:1px solid var(--line);
+      border-radius:18px;background:rgba(255,255,255,.97);box-shadow:0 12px 30px rgba(112,79,61,.16);
+      backdrop-filter:blur(10px);opacity:0;visibility:hidden;pointer-events:none;
+      transition:opacity .2s ease,transform .2s ease,visibility .2s ease;
+    }
+    .site-update-banner.active{opacity:1;visibility:visible;pointer-events:auto;transform:translateX(-50%) translateY(0)}
+    .site-update-banner-text{min-width:0;line-height:1.45;font-size:14px;font-weight:800;color:var(--text)}
+    .site-update-banner button{flex:0 0 auto;width:auto;white-space:nowrap;padding:9px 12px!important;min-height:38px!important;background:var(--green)}
+    @media(max-width:560px){
+      .site-update-banner{top:10px;align-items:stretch;flex-direction:column;gap:8px}
+      .site-update-banner button{width:100%}
+    }
+
   </style>
 </head>
 <body>
+
+  <div id="siteUpdateBanner" class="site-update-banner" role="status" aria-live="polite">
+    <div class="site-update-banner-text">🌱 網站有新版本，請重新整理取得最新版。</div>
+    <button id="reloadLatestBtn" type="button">重新整理</button>
+  </div>
 <div class="wrap">
   <div class="title"><h1>🌼 妖妖_GPX路徑生成器</h1><p>輸入經緯度座標，轉換為種花與收果版本路徑GPX</p></div>
 
@@ -822,27 +869,38 @@
     </div>
   </section>
 
-  <div class="side" style="margin-top:14px">
-    <div>
-      <section class="card">
-        <h2>🌼 5. 排序結果</h2>
-        <div id="pointList" class="dragList"></div>
-        <div class="dragHint">可按住 ☰ 拖曳把手調整座標順序；放開後會立即更新 GPX、統計與路徑圖。</div>
-        <div class="sortExperienceHint">若要重新自動排序，可切換至上方的「最短迴圈」。</div>
-      </section>
-      <section class="card" style="margin-top:14px">
-        <h2>🌼 6. 路徑統計資訊</h2>
-        <div class="stats">
-          <div class="stat"><b>點位總數</b><span id="sCount">0 個</span></div>
-          <div class="stat"><b>收果預計完成時間</b><span id="sFruitTime">-</span></div>
-          <div class="stat"><b>種花預計完成時間</b><span id="sFlowerTime">-</span></div>
-        </div>
-      </section>
+  <section class="card" style="margin-top:14px">
+    <div class="sectionTitleRow clickableHeader" id="visualHeader">
+      <h2>🌼 5. 路徑視覺化（網格版）</h2>
+      <button class="collapseBtn" id="toggleVisualBtn" type="button" title="收縮 / 展開" aria-label="收縮路徑視覺化">▲</button>
     </div>
-
-    <section class="card">
-      <div class="vizHead"><h2>🌼 7. 路徑視覺化（網格版）</h2><div class="toggleline"><span>顯示編號</span><label class="switch"><input id="showLabels" type="checkbox" checked><span class="slider"></span></label><button id="pngBtn" class="light">🖼 匯出圖片</button></div></div>
+    <div id="visualContent">
+      <div class="vizHead">
+        <div class="visualModeTabs" role="tablist" aria-label="路徑視覺化版本">
+          <button class="visualModeBtn active" type="button" data-visual-mode="coord">純座標版本</button>
+          <button class="visualModeBtn" type="button" data-visual-mode="fruit">收果版本</button>
+          <button class="visualModeBtn" type="button" data-visual-mode="flower">種花版本</button>
+        </div>
+        <div class="visualTools"><div class="labelModeSwitch" role="radiogroup" aria-label="路徑編號顯示方式"><label class="labelModeOption"><input type="radio" name="labelMode" value="show" checked><span>顯示編號</span></label><label class="labelModeOption"><input type="radio" name="labelMode" value="hide"><span>不顯示編號</span></label></div><button id="pngBtn" class="light">🖼 匯出圖片</button></div>
+      </div>
       <div class="canvasWrap"><canvas id="canvas" width="900" height="720"></canvas></div>
+    </div>
+  </section>
+
+  <div class="resultStatsRow">
+    <section class="card">
+      <h2>🌼 6. 排序結果</h2>
+      <div id="pointList" class="dragList"></div>
+      <div class="dragHint">可按住 ☰ 拖曳把手調整座標順序；放開後會立即更新 GPX、統計與路徑圖。</div>
+      <div class="sortExperienceHint">若要重新自動排序，可切換至上方的「最短迴圈」。</div>
+    </section>
+    <section class="card">
+      <h2>🌼 7. 路徑統計資訊</h2>
+      <div class="stats">
+        <div class="stat"><b>點位總數</b><span id="sCount">0 個</span></div>
+        <div class="stat"><b>收果預計完成時間</b><span id="sFruitTime">-</span></div>
+        <div class="stat"><b>種花預計完成時間</b><span id="sFlowerTime">-</span></div>
+      </div>
     </section>
   </div>
 
@@ -884,6 +942,7 @@
 <script>
 const $ = id => document.getElementById(id);
 let currentPoints = [];
+let visualMode = 'coord';
 
 function escapeXml(s){
   return String(s)
@@ -1280,16 +1339,32 @@ function updateOutput(){
   syncOutputViewer();
 }
 
+function getVisualPoints(){
+  if (visualMode === 'fruit') return generateFruitPoints(currentPoints);
+  if (visualMode === 'flower') return generateFlowerPoints(currentPoints);
+  return currentPoints;
+}
+
+function getVisualPointLabel(index){
+  if (visualMode === 'fruit') {
+    const sourceIndex = Math.floor(index / 3) + 1;
+    return `P${sourceIndex}-${['L','M','R'][index % 3]}`;
+  }
+  if (visualMode === 'flower') return getFlowerPointName(index);
+  return String(index + 1);
+}
+
 function draw(){
   const canvas = $('canvas');
   const ctx = canvas.getContext('2d');
   const w = canvas.width, h = canvas.height;
+  const visualPoints = getVisualPoints();
 
   ctx.clearRect(0,0,w,h);
   ctx.fillStyle = '#222528';
   ctx.fillRect(0,0,w,h);
 
-  if (!currentPoints.length) {
+  if (!visualPoints.length) {
     ctx.fillStyle = '#fff';
     ctx.font = 'bold 26px sans-serif';
     ctx.textAlign = 'center';
@@ -1297,7 +1372,7 @@ function draw(){
     return;
   }
 
-  const b = bounds(currentPoints);
+  const b = bounds(visualPoints);
   const pad = 70;
   const lonR = b.maxLon - b.minLon || 0.0001;
   const latR = b.maxLat - b.minLat || 0.0001;
@@ -1343,42 +1418,44 @@ function draw(){
 
   ctx.setLineDash([8,8]);
   ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--route').trim() || '#ffd84d';
-  ctx.lineWidth = 4;
+  ctx.lineWidth = visualMode === 'coord' ? 4 : 2.5;
   ctx.beginPath();
-  currentPoints.forEach((p,i)=>{
+  visualPoints.forEach((p,i)=>{
     const q = xy(p);
     if (i === 0) ctx.moveTo(q.x, q.y);
     else ctx.lineTo(q.x, q.y);
   });
-  if (getRouteMode() === 'shortest' && currentPoints.length > 1) {
-    const first = xy(currentPoints[0]);
+  if (getRouteMode() === 'shortest' && visualPoints.length > 1) {
+    const first = xy(visualPoints[0]);
     ctx.lineTo(first.x, first.y);
   }
   ctx.stroke();
   ctx.setLineDash([]);
 
-  currentPoints.forEach((p,i)=>{
+  const pointRadius = visualMode === 'coord' ? 12 : (visualMode === 'fruit' ? 7 : 5);
+  visualPoints.forEach((p,i)=>{
     const q = xy(p);
     ctx.beginPath();
-    ctx.arc(q.x, q.y, 12, 0, Math.PI * 2);
-    ctx.fillStyle = i === 0 ? '#55d46b' : i === currentPoints.length - 1 ? '#ef594d' : '#6659de';
+    ctx.arc(q.x, q.y, pointRadius, 0, Math.PI * 2);
+    ctx.fillStyle = i === 0 ? '#55d46b' : i === visualPoints.length - 1 ? '#ef594d' : '#6659de';
     ctx.fill();
     ctx.lineWidth = 2;
     ctx.strokeStyle = 'rgba(0,0,0,.22)';
     ctx.stroke();
 
-    if ($('showLabels').checked) {
+    if ((document.querySelector('input[name="labelMode"]:checked')?.value || 'show') === 'show') {
       ctx.fillStyle = '#fff';
-      ctx.font = 'bold 19px sans-serif';
+      ctx.font = visualMode === 'coord' ? 'bold 19px sans-serif' : 'bold 12px sans-serif';
       ctx.textAlign = 'center';
-      ctx.strokeStyle = 'rgba(0,0,0,.55)';
-      ctx.lineWidth = 4;
-      ctx.strokeText(String(i+1), q.x, q.y - 18);
-      ctx.fillText(String(i+1), q.x, q.y - 18);
+      ctx.strokeStyle = 'rgba(0,0,0,.65)';
+      ctx.lineWidth = visualMode === 'coord' ? 4 : 3;
+      const label = getVisualPointLabel(i);
+      const labelY = q.y - pointRadius - 7;
+      ctx.strokeText(label, q.x, labelY);
+      ctx.fillText(label, q.x, labelY);
     }
   });
 }
-
 function renderDragList(){
   const list = $('pointList');
   list.innerHTML = '';
@@ -1395,10 +1472,10 @@ function renderDragList(){
       <span class="dragNum">${String(i + 1).padStart(2, '0')}</span>
       <span class="dragCoord">${p.lat.toFixed(6)}, ${p.lon.toFixed(6)}</span>
       <span class="dragActions sortActions">
-        
-        
-        
-        
+        <button class="moveBtn" type="button" data-action="first" title="移至頂端" aria-label="第 ${i + 1} 筆移至頂端" ${i === 0 ? 'disabled' : ''}>⤒</button>
+        <button class="moveBtn" type="button" data-action="up" title="往上移動" aria-label="第 ${i + 1} 筆往上移動" ${i === 0 ? 'disabled' : ''}>↑</button>
+        <button class="moveBtn" type="button" data-action="down" title="往下移動" aria-label="第 ${i + 1} 筆往下移動" ${i === currentPoints.length - 1 ? 'disabled' : ''}>↓</button>
+        <button class="moveBtn" type="button" data-action="last" title="移至底端" aria-label="第 ${i + 1} 筆移至底端" ${i === currentPoints.length - 1 ? 'disabled' : ''}>⤓</button>
       </span>
       <span class="moveToRow">
         <span>移到第</span>
@@ -1424,6 +1501,13 @@ function renderDragList(){
 
     item.querySelector('.dragCoord').addEventListener('click', () => {
       item.classList.toggle('selected');
+    });
+
+    item.querySelectorAll('.sortActions .moveBtn').forEach(btn => {
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        movePointByAction(i, btn.dataset.action);
+      });
     });
 
     item.querySelector('.moveToConfirm').addEventListener('click', e => {
@@ -1718,10 +1802,19 @@ if ($('downloadCoordGpxReverseBtn')) $('downloadCoordGpxReverseBtn').onclick = (
 if ($('downloadCoordForwardBtn')) $('downloadCoordForwardBtn').onclick = () => downloadGenerated('coord', 'forward');
 if ($('downloadCoordReverseBtn')) $('downloadCoordReverseBtn').onclick = () => downloadGenerated('coord', 'reverse');
 
+
+document.querySelectorAll('.visualModeBtn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    visualMode = btn.dataset.visualMode || 'coord';
+    document.querySelectorAll('.visualModeBtn').forEach(x => x.classList.toggle('active', x === btn));
+    draw();
+  });
+});
+
 $('pngBtn').onclick = () => {
   const a = document.createElement('a');
   a.href = $('canvas').toDataURL('image/png');
-  a.download = 'GPX_route_preview.png';
+  a.download = `GPX_route_preview_${visualMode}.png`;
   a.click();
 };
 
@@ -1754,13 +1847,11 @@ document.querySelectorAll('input[name="routeMode"]').forEach(input => {
   });
 });
 
-['showLabels'].forEach(id => {
-  if ($(id)) {
-    $(id).addEventListener('change', () => {
-      if (currentPoints.length || $('input').value.trim()) analyze();
-      else draw();
-    });
-  }
+document.querySelectorAll('input[name="labelMode"]').forEach(input => {
+  input.addEventListener('change', () => {
+    if (currentPoints.length || $('input').value.trim()) analyze();
+    else draw();
+  });
 });
 
 
@@ -1817,6 +1908,7 @@ bindCollapseToggle('paramHeader', 'toggleParamBtn', 'paramContent', '參數設�
 bindCollapseToggle('inputHeader', 'toggleInputBtn', 'inputContent', '輸入內容');
 bindCollapseToggle('copyHeader', 'toggleCopyBtn', 'copyContent', '座標複製區');
 bindCollapseToggle('downloadHeader', 'toggleDownloadBtn', 'downloadContent', '座標下載區');
+bindCollapseToggle('visualHeader', 'toggleVisualBtn', 'visualContent', '路徑視覺化');
 bindCollapseToggle('outputHeader', 'toggleOutputBtn', 'outputContent', '轉換輸出');
 
 
@@ -1842,6 +1934,94 @@ document.querySelectorAll('[data-output-direction]').forEach(btn => btn.addEvent
 
 
 
+
+// ===== GitHub Pages 網站版本檢查 =====
+// 參考「妖妖開花公告」：比較目前發布 HTML 的內容指紋，不需要另外維護版本號。
+// 此工具頁更新頻率較低，因此僅在前景每 15 分鐘檢查一次；切回分頁時也會立即檢查一次。
+const SITE_UPDATE_CHECK_INTERVAL = 15 * 60 * 1000;
+let publishedPageFingerprint = null;
+let siteUpdateTimer = null;
+let siteUpdateDetected = false;
+let siteUpdateChecking = false;
+
+function hashText(text){
+  let hash = 2166136261;
+  for(let i=0;i<text.length;i++){
+    hash ^= text.charCodeAt(i);
+    hash = Math.imul(hash,16777619);
+  }
+  return (hash >>> 0).toString(16);
+}
+
+async function getPublishedPageFingerprint(){
+  if(!/^https?:$/.test(window.location.protocol)) return null;
+  const url = new URL(window.location.origin + window.location.pathname);
+  url.searchParams.set('_updateCheck', Date.now());
+  const response = await fetch(url.toString(), {method:'GET',cache:'no-store'});
+  if(!response.ok) throw new Error(`版本檢查 HTTP ${response.status}`);
+  return hashText(await response.text());
+}
+
+function showSiteUpdateBanner(){
+  if(siteUpdateDetected) return;
+  siteUpdateDetected = true;
+  const banner = $('siteUpdateBanner');
+  if(banner) banner.classList.add('active');
+  stopSiteUpdateTimer();
+}
+
+async function checkForSiteUpdate({initialize=false}={}){
+  if(siteUpdateDetected || siteUpdateChecking) return;
+  if(!initialize && document.visibilityState !== 'visible') return;
+  siteUpdateChecking = true;
+  try{
+    const fingerprint = await getPublishedPageFingerprint();
+    if(!fingerprint) return;
+    if(!publishedPageFingerprint || initialize){
+      publishedPageFingerprint = fingerprint;
+      return;
+    }
+    if(fingerprint === publishedPageFingerprint) return;
+
+    // GitHub Pages / CDN 剛發布時可能短暫不一致，再確認一次避免誤判。
+    await new Promise(resolve => setTimeout(resolve,3000));
+    if(document.visibilityState !== 'visible' || siteUpdateDetected) return;
+    const confirmFingerprint = await getPublishedPageFingerprint();
+    if(confirmFingerprint === fingerprint && confirmFingerprint !== publishedPageFingerprint){
+      showSiteUpdateBanner();
+    }
+  }catch(error){
+    console.debug('網站版本檢查失敗',error);
+  }finally{
+    siteUpdateChecking = false;
+  }
+}
+
+function stopSiteUpdateTimer(){
+  if(siteUpdateTimer !== null){clearInterval(siteUpdateTimer);siteUpdateTimer=null;}
+}
+
+function startSiteUpdateTimer(){
+  stopSiteUpdateTimer();
+  if(document.visibilityState !== 'visible' || siteUpdateDetected) return;
+  siteUpdateTimer = setInterval(() => checkForSiteUpdate(), SITE_UPDATE_CHECK_INTERVAL);
+}
+
+if($('reloadLatestBtn')) $('reloadLatestBtn').addEventListener('click',()=>{
+  const url = new URL(window.location.href);
+  url.searchParams.set('_latest',Date.now());
+  window.location.replace(url.toString());
+});
+
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState === 'visible'){
+    checkForSiteUpdate();
+    startSiteUpdateTimer();
+  }else{
+    stopSiteUpdateTimer();
+  }
+});
+
 if ($('backToTopBtn')) $('backToTopBtn').onclick = () => {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 };
@@ -1850,6 +2030,7 @@ initDragList();
 updateFlowerModeDescription();
 syncOutputViewer();
 draw();
+checkForSiteUpdate({initialize:true}).finally(startSiteUpdateTimer);
 </script>
 
 
