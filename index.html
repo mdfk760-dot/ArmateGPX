@@ -1114,6 +1114,17 @@ function getRouteMode(){
   return document.querySelector('input[name="routeMode"]:checked')?.value || 'paste';
 }
 
+// 分析排序前移除重複座標：以網站統一輸出的 6 位小數作為判定基準，保留第一次出現的座標。
+function removeDuplicatePoints(pts){
+  const seen = new Set();
+  return pts.filter(p => {
+    const key = `${p.lat.toFixed(6)},${p.lon.toFixed(6)}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
 function orderPoints(pts){
   let out = pts.slice();
 
@@ -1610,7 +1621,9 @@ function initDragList(){
 
 function analyze(){
   const raw = $('input').value.trim();
-  const pts = parsePoints(raw);
+  const parsedPoints = parsePoints(raw);
+  const pts = removeDuplicatePoints(parsedPoints);
+  const duplicateCount = parsedPoints.length - pts.length;
 
   if (!pts.length) {
     $('msg').textContent = '沒有找到可用座標。';
@@ -1626,7 +1639,8 @@ function analyze(){
   renderDragList();
   updateStats();
   const flowerModeLabel = getFlowerMode() === 'north33' ? '33 點北向圓形' : '15 點自動旋轉';
-  $('msg').textContent = '完成，共 ' + currentPoints.length + ' 個原始點位；收果版會展開為 ' + generateFruitPoints(currentPoints).length + ' 個跳點；種花版目前使用「' + flowerModeLabel + '」，共展開為 ' + generateFlowerPoints(currentPoints).length + ' 個跳點。';
+  const duplicateMessage = duplicateCount > 0 ? '；已移除 ' + duplicateCount + ' 筆重複座標' : '';
+  $('msg').textContent = '完成，共 ' + currentPoints.length + ' 個原始點位' + duplicateMessage + '；收果版會展開為 ' + generateFruitPoints(currentPoints).length + ' 個跳點；種花版目前使用「' + flowerModeLabel + '」，共展開為 ' + generateFlowerPoints(currentPoints).length + ' 個跳點。';
   updateOutput();
   draw();
 }
